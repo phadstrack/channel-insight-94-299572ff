@@ -9,8 +9,32 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TurmasRouteImport } from './routes/turmas'
+import { Route as JornadaRouteImport } from './routes/jornada'
+import { Route as GapsRouteImport } from './routes/gaps'
+import { Route as CanaisRouteImport } from './routes/canais'
 import { Route as IndexRouteImport } from './routes/index'
 
+const TurmasRoute = TurmasRouteImport.update({
+  id: '/turmas',
+  path: '/turmas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JornadaRoute = JornadaRouteImport.update({
+  id: '/jornada',
+  path: '/jornada',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GapsRoute = GapsRouteImport.update({
+  id: '/gaps',
+  path: '/gaps',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CanaisRoute = CanaisRouteImport.update({
+  id: '/canais',
+  path: '/canais',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +43,72 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/canais': typeof CanaisRoute
+  '/gaps': typeof GapsRoute
+  '/jornada': typeof JornadaRoute
+  '/turmas': typeof TurmasRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/canais': typeof CanaisRoute
+  '/gaps': typeof GapsRoute
+  '/jornada': typeof JornadaRoute
+  '/turmas': typeof TurmasRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/canais': typeof CanaisRoute
+  '/gaps': typeof GapsRoute
+  '/jornada': typeof JornadaRoute
+  '/turmas': typeof TurmasRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/canais' | '/gaps' | '/jornada' | '/turmas'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/canais' | '/gaps' | '/jornada' | '/turmas'
+  id: '__root__' | '/' | '/canais' | '/gaps' | '/jornada' | '/turmas'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CanaisRoute: typeof CanaisRoute
+  GapsRoute: typeof GapsRoute
+  JornadaRoute: typeof JornadaRoute
+  TurmasRoute: typeof TurmasRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/turmas': {
+      id: '/turmas'
+      path: '/turmas'
+      fullPath: '/turmas'
+      preLoaderRoute: typeof TurmasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/jornada': {
+      id: '/jornada'
+      path: '/jornada'
+      fullPath: '/jornada'
+      preLoaderRoute: typeof JornadaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gaps': {
+      id: '/gaps'
+      path: '/gaps'
+      fullPath: '/gaps'
+      preLoaderRoute: typeof GapsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/canais': {
+      id: '/canais'
+      path: '/canais'
+      fullPath: '/canais'
+      preLoaderRoute: typeof CanaisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +121,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CanaisRoute: CanaisRoute,
+  GapsRoute: GapsRoute,
+  JornadaRoute: JornadaRoute,
+  TurmasRoute: TurmasRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
