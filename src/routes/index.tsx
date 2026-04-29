@@ -57,31 +57,11 @@ function Overview() {
     },
   });
 
-  const { data: semAtribData } = useQuery({
-    queryKey: ["overview-sem-atrib", filters.dateFrom, filters.dateTo, filters.turmas, filters.estados],
-    queryFn: async () => {
-      let q = supabase
-        .from("sem_atribuicao")
-        .select("valor_convertido")
-        .limit(5000);
-      if (filters.dateFrom) q = q.gte("data_matricula", filters.dateFrom) as any;
-      if (filters.dateTo) q = q.lte("data_matricula", filters.dateTo) as any;
-      if (filters.turmas.length) q = q.in("turma", filters.turmas) as any;
-      if (filters.estados.length) q = q.in("estado", filters.estados) as any;
-      const { data, error } = await q;
-      if (error) throw error;
-      return (data ?? []) as { valor_convertido: number }[];
-    },
-  });
-
   const rows = data ?? [];
-  const semAtrib = semAtribData ?? [];
 
-  // Aggregations — unified totals (atribuidas + sem_atribuicao)
-  const totalVendas = rows.length + semAtrib.length;
-  const receitaAtrib = rows.reduce((s, r) => s + Number(r.valor_convertido ?? 0), 0);
-  const receitaSemAtrib = semAtrib.reduce((s, r) => s + Number(r.valor_convertido ?? 0), 0);
-  const receitaTotal = receitaAtrib + receitaSemAtrib;
+  // Aggregations — vendas_atribuidas is the complete set (sem_atribuicao is a subset, not additive)
+  const totalVendas = rows.length;
+  const receitaTotal = rows.reduce((s, r) => s + Number(r.valor_convertido ?? 0), 0);
   const ticket = totalVendas > 0 ? receitaTotal / totalVendas : 0;
 
   const tipoMap: Record<string, { vendas: number; receita: number }> = {};
@@ -98,7 +78,6 @@ function Overview() {
     canalMap[c].receita += Number(r.valor_convertido ?? 0);
   }
 
-  // % attribution based on real total (atribuidas + sem_atribuicao)
   const pctIdent =
     totalVendas > 0
       ? ((tipoMap["Existente"]?.vendas ?? 0) / totalVendas) * 100
@@ -162,7 +141,7 @@ function Overview() {
         <KpiCard label="Total de Vendas" value={fmtNum(totalVendas)} accent="#8b5cf6" loading={isLoading} />
         <KpiCard label="Ticket Médio" value={fmtBRLFull(ticket)} accent="#a78bfa" loading={isLoading} />
         <KpiCard
-          label="% Atribuição Real"
+          label="Canal Identificado"
           value={
             <span className="flex items-center gap-2">
               {fmtPct(pctIdent)}
