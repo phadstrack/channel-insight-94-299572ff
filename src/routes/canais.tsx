@@ -20,7 +20,7 @@ export const Route = createFileRoute("/canais")({
   component: Canais,
 });
 
-const CHANNELS = ["Todos", "Meta/Instagram", "Google", "Orgânico", "Lead Tráfego", "X (Twitter)"];
+const CHANNELS = ["Todos", "Meta/Instagram", "Google", "Organico", "Lead Trafego", "X (Twitter)"];
 
 function Canais() {
   const { filters } = useFilters();

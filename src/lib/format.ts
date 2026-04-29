@@ -26,8 +26,8 @@ export const fmtDateBR = (d: string | Date | null | undefined) => {
 export const CHANNEL_COLORS: Record<string, string> = {
   "Meta/Instagram": "#6366f1",
   Google: "#8b5cf6",
-  "Orgânico": "#a78bfa",
-  "Lead Tráfego": "#c4b5fd",
+  Organico: "#a78bfa",
+  "Lead Trafego": "#c4b5fd",
   "X (Twitter)": "#ddd6fe",
   "Sem UTM": "#374151",
   "Sem Lead": "#4b5563",
