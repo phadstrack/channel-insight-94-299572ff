@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { applyVendasFilters, useFilters } from "@/lib/filters";
@@ -17,6 +18,9 @@ import {
   PieChart,
   Pie,
   Cell,
+  Label,
+  LineChart,
+  Line,
 } from "recharts";
 
 export const Route = createFileRoute("/")({
@@ -33,6 +37,8 @@ type Row = {
   canal: string;
   tipo_atribuicao: string;
   valor_convertido: number;
+  data_matricula: string | null;
+  estado: string | null;
 };
 
 function Overview() {
@@ -43,8 +49,8 @@ function Overview() {
     queryFn: async () => {
       const q = supabase
         .from("vendas_atribuidas")
-        .select("canal, tipo_atribuicao, valor_convertido")
-        .limit(5000);
+        .select("canal, tipo_atribuicao, valor_convertido, data_matricula, estado")
+        .limit(10000);
       const { data, error } = await applyVendasFilters(q as any, filters);
       if (error) throw error;
       return (data ?? []) as Row[];
@@ -100,6 +106,28 @@ function Overview() {
     "Sem Atribuicao": "#f87171",
   };
 
+  const monthlyTrend = useMemo(() => {
+    const m: Record<string, number> = {};
+    for (const r of rows) {
+      if (!r.data_matricula) continue;
+      const mes = String(r.data_matricula).slice(0, 7);
+      m[mes] = (m[mes] ?? 0) + Number(r.valor_convertido ?? 0);
+    }
+    return Object.entries(m).sort().map(([mes, receita]) => ({ mes, receita }));
+  }, [rows]);
+
+  const topEstados = useMemo(() => {
+    const m: Record<string, number> = {};
+    for (const r of rows) {
+      if (!r.estado) continue;
+      m[r.estado] = (m[r.estado] ?? 0) + Number(r.valor_convertido ?? 0);
+    }
+    return Object.entries(m)
+      .map(([estado, receita]) => ({ estado, receita }))
+      .sort((a, b) => b.receita - a.receita)
+      .slice(0, 10);
+  }, [rows]);
+
   return (
     <>
       <PageHeader
@@ -154,6 +182,23 @@ function Overview() {
         </div>
       </Card>
 
+      <Card title="Tendência de receita mensal" className="mb-6">
+        <div className="h-56">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={monthlyTrend} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1e2535" />
+              <XAxis dataKey="mes" stroke="#9ca3af" tick={{ fontSize: 11 }} />
+              <YAxis stroke="#9ca3af" tick={{ fontSize: 11 }} tickFormatter={(v) => fmtBRL(v)} />
+              <Tooltip
+                contentStyle={{ background: "#161b27", border: "1px solid #1e2535", borderRadius: 8, fontSize: 12 }}
+                formatter={(v: any) => [fmtBRLFull(Number(v)), "Receita"]}
+              />
+              <Line type="monotone" dataKey="receita" stroke="#6366f1" strokeWidth={2} dot={{ r: 3, fill: "#6366f1" }} activeDot={{ r: 5 }} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </Card>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         <Card title="Receita por Canal" className="lg:col-span-2">
           <div className="h-72">
@@ -185,6 +230,17 @@ function Overview() {
                   {tipoRows.map((t) => (
                     <Cell key={t.name} fill={tipoColors[t.name] ?? "#6b7280"} />
                   ))}
+                  <Label
+                    content={({ viewBox }: any) => {
+                      const { cx, cy } = viewBox;
+                      return (
+                        <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle">
+                          <tspan x={cx} dy="-0.4em" fontSize="18" fontWeight="600" fill="#f1f5f9">{fmtNum(totalVendas)}</tspan>
+                          <tspan x={cx} dy="1.4em" fontSize="11" fill="#9ca3af">vendas</tspan>
+                        </text>
+                      );
+                    }}
+                  />
                 </Pie>
                 <Tooltip
                   contentStyle={{ background: "#161b27", border: "1px solid #1e2535", borderRadius: 8, fontSize: 12 }}
@@ -208,6 +264,23 @@ function Overview() {
           </div>
         </Card>
       </div>
+
+      <Card title="Top 10 estados por receita" className="mb-6">
+        <div className="h-72">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={topEstados} layout="vertical" margin={{ left: 40, right: 20, top: 10, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1e2535" />
+              <XAxis type="number" stroke="#9ca3af" tick={{ fontSize: 11 }} tickFormatter={(v) => fmtBRL(v)} />
+              <YAxis dataKey="estado" type="category" stroke="#9ca3af" tick={{ fontSize: 11 }} width={40} />
+              <Tooltip
+                contentStyle={{ background: "#161b27", border: "1px solid #1e2535", borderRadius: 8, fontSize: 12 }}
+                formatter={(v: any) => [fmtBRLFull(Number(v)), "Receita"]}
+              />
+              <Bar dataKey="receita" fill="#6366f1" radius={[0, 4, 4, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </Card>
 
       <Card title="Detalhamento por Canal">
         <div className="overflow-x-auto">

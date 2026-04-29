@@ -37,7 +37,7 @@ function Gaps() {
       const { data, error } = await supabase
         .from("sem_atribuicao")
         .select("nome, turma, valor_convertido, origem_lead, ultima_origem_lead, categoria_origem, estado, grupo_sem_atribuicao")
-        .limit(2000);
+        .limit(5000);
       if (error) throw error;
       return (data ?? []) as any[];
     },

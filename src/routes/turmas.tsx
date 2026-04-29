@@ -42,6 +42,13 @@ function Turmas() {
   const [anoFilter, setAnoFilter] = useState<string>("");
   const [cidadeFilter, setCidadeFilter] = useState<string>("");
   const [openTurma, setOpenTurma] = useState<string | null>(null);
+  const [sortKey, setSortKey] = useState<"receita" | "vendas" | "ticket">("receita");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+
+  function toggleSort(key: "receita" | "vendas" | "ticket") {
+    if (sortKey === key) setSortDir((d) => (d === "desc" ? "asc" : "desc"));
+    else { setSortKey(key); setSortDir("desc"); }
+  }
 
   const { data, isLoading } = useQuery({
     queryKey: ["turmas-all", filters],
@@ -49,7 +56,7 @@ function Turmas() {
       const q = supabase
         .from("vendas_atribuidas")
         .select("turma, canal, tipo_atribuicao, valor_convertido, estado, utm_campanha")
-        .limit(5000);
+        .limit(10000);
       const { data, error } = await applyVendasFilters(q as any, filters);
       if (error) throw error;
       return (data ?? []) as Row[];
@@ -83,7 +90,10 @@ function Turmas() {
       })
       .filter((t) => (anoFilter ? t.ano === anoFilter : true))
       .filter((t) => (cidadeFilter ? t.cidade.toLowerCase().includes(cidadeFilter.toLowerCase()) : true))
-      .sort((a, b) => b.receita - a.receita);
+      .sort((a, b) => {
+        const diff = a[sortKey] - b[sortKey];
+        return sortDir === "desc" ? -diff : diff;
+      });
   }, [rows, anoFilter, cidadeFilter]);
 
   const anos = useMemo(() => {
@@ -151,9 +161,15 @@ function Turmas() {
                 <th className="py-2 pr-4">Turma</th>
                 <th className="py-2 pr-4">Ano</th>
                 <th className="py-2 pr-4">Cidade</th>
-                <th className="py-2 pr-4 text-right">Vendas</th>
-                <th className="py-2 pr-4 text-right">Receita</th>
-                <th className="py-2 pr-4 text-right">Ticket</th>
+                <th className="py-2 pr-4 text-right cursor-pointer select-none hover:text-foreground transition" onClick={() => toggleSort("vendas")}>
+                  Vendas {sortKey === "vendas" ? (sortDir === "desc" ? "↓" : "↑") : ""}
+                </th>
+                <th className="py-2 pr-4 text-right cursor-pointer select-none hover:text-foreground transition" onClick={() => toggleSort("receita")}>
+                  Receita {sortKey === "receita" ? (sortDir === "desc" ? "↓" : "↑") : ""}
+                </th>
+                <th className="py-2 pr-4 text-right cursor-pointer select-none hover:text-foreground transition" onClick={() => toggleSort("ticket")}>
+                  Ticket {sortKey === "ticket" ? (sortDir === "desc" ? "↓" : "↑") : ""}
+                </th>
                 <th className="py-2 pr-4">Canal Dominante</th>
               </tr>
             </thead>

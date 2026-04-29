@@ -20,7 +20,7 @@ export const Route = createFileRoute("/canais")({
   component: Canais,
 });
 
-const CHANNELS = ["Meta/Instagram", "Google", "Organico", "Lead Trafego", "X (Twitter)"];
+const CHANNELS = ["Todos", "Meta/Instagram", "Google", "Orgânico", "Lead Tráfego", "X (Twitter)"];
 
 function Canais() {
   const { filters } = useFilters();
@@ -29,11 +29,11 @@ function Canais() {
   const { data: rows, isLoading } = useQuery({
     queryKey: ["canais-detail", canal, filters],
     queryFn: async () => {
-      const q = supabase
+      let q = supabase
         .from("vendas_atribuidas")
         .select("canal, valor_convertido, utm_campanha, utm_conteudo, data_matricula")
-        .eq("canal", canal)
-        .limit(5000);
+        .limit(10000);
+      if (canal !== "Todos") q = q.eq("canal", canal) as any;
       const { data, error } = await applyVendasFilters(q as any, { ...filters, canais: [] });
       if (error) throw error;
       return (data ?? []) as any[];
@@ -43,7 +43,7 @@ function Canais() {
   const { data: totalRows } = useQuery({
     queryKey: ["canais-total", filters],
     queryFn: async () => {
-      const q = supabase.from("vendas_atribuidas").select("valor_convertido").limit(5000);
+      const q = supabase.from("vendas_atribuidas").select("valor_convertido").limit(10000);
       const { data, error } = await applyVendasFilters(q as any, { ...filters, canais: [] });
       if (error) throw error;
       return (data ?? []) as any[];

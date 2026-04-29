@@ -1,11 +1,13 @@
 import { Link } from "@tanstack/react-router";
-import { LayoutDashboard, Radio, GraduationCap, Route as RouteIcon, AlertTriangle } from "lucide-react";
+import { LayoutDashboard, Radio, GraduationCap, Route as RouteIcon, AlertTriangle, Tag, MapPin } from "lucide-react";
 
 const links = [
   { to: "/", label: "Visão Geral", icon: LayoutDashboard },
   { to: "/canais", label: "Canais", icon: Radio },
+  { to: "/utms", label: "UTMs", icon: Tag },
   { to: "/turmas", label: "Turmas", icon: GraduationCap },
   { to: "/jornada", label: "Jornada do Lead", icon: RouteIcon },
+  { to: "/geografia", label: "Geografia", icon: MapPin },
   { to: "/gaps", label: "Gaps de Atribuição", icon: AlertTriangle },
 ] as const;
 

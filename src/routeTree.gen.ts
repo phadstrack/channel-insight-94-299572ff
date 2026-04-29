@@ -13,6 +13,8 @@ import { Route as TurmasRouteImport } from './routes/turmas'
 import { Route as JornadaRouteImport } from './routes/jornada'
 import { Route as GapsRouteImport } from './routes/gaps'
 import { Route as CanaisRouteImport } from './routes/canais'
+import { Route as UtmsRouteImport } from './routes/utms'
+import { Route as GeografiaRouteImport } from './routes/geografia'
 import { Route as IndexRouteImport } from './routes/index'
 
 const TurmasRoute = TurmasRouteImport.update({
@@ -35,6 +37,16 @@ const CanaisRoute = CanaisRouteImport.update({
   path: '/canais',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UtmsRoute = UtmsRouteImport.update({
+  id: '/utms',
+  path: '/utms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GeografiaRoute = GeografiaRouteImport.update({
+  id: '/geografia',
+  path: '/geografia',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -47,6 +59,8 @@ export interface FileRoutesByFullPath {
   '/gaps': typeof GapsRoute
   '/jornada': typeof JornadaRoute
   '/turmas': typeof TurmasRoute
+  '/utms': typeof UtmsRoute
+  '/geografia': typeof GeografiaRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +68,8 @@ export interface FileRoutesByTo {
   '/gaps': typeof GapsRoute
   '/jornada': typeof JornadaRoute
   '/turmas': typeof TurmasRoute
+  '/utms': typeof UtmsRoute
+  '/geografia': typeof GeografiaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +78,15 @@ export interface FileRoutesById {
   '/gaps': typeof GapsRoute
   '/jornada': typeof JornadaRoute
   '/turmas': typeof TurmasRoute
+  '/utms': typeof UtmsRoute
+  '/geografia': typeof GeografiaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/canais' | '/gaps' | '/jornada' | '/turmas'
+  fullPaths: '/' | '/canais' | '/gaps' | '/jornada' | '/turmas' | '/utms' | '/geografia'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/canais' | '/gaps' | '/jornada' | '/turmas'
-  id: '__root__' | '/' | '/canais' | '/gaps' | '/jornada' | '/turmas'
+  to: '/' | '/canais' | '/gaps' | '/jornada' | '/turmas' | '/utms' | '/geografia'
+  id: '__root__' | '/' | '/canais' | '/gaps' | '/jornada' | '/turmas' | '/utms' | '/geografia'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,6 +95,8 @@ export interface RootRouteChildren {
   GapsRoute: typeof GapsRoute
   JornadaRoute: typeof JornadaRoute
   TurmasRoute: typeof TurmasRoute
+  UtmsRoute: typeof UtmsRoute
+  GeografiaRoute: typeof GeografiaRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -109,6 +129,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CanaisRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/utms': {
+      id: '/utms'
+      path: '/utms'
+      fullPath: '/utms'
+      preLoaderRoute: typeof UtmsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/geografia': {
+      id: '/geografia'
+      path: '/geografia'
+      fullPath: '/geografia'
+      preLoaderRoute: typeof GeografiaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -125,6 +159,8 @@ const rootRouteChildren: RootRouteChildren = {
   GapsRoute: GapsRoute,
   JornadaRoute: JornadaRoute,
   TurmasRoute: TurmasRoute,
+  UtmsRoute: UtmsRoute,
+  GeografiaRoute: GeografiaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

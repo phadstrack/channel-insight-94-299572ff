@@ -28,7 +28,7 @@ function Jornada() {
       const q = supabase
         .from("vendas_atribuidas")
         .select("email, turma, tipo_atribuicao")
-        .limit(5000);
+        .limit(10000);
       const { data, error } = await applyVendasFilters(q as any, filters);
       if (error) throw error;
       return (data ?? []) as any[];
@@ -36,12 +36,12 @@ function Jornada() {
   });
 
   const { data: jornada, isLoading } = useQuery({
-    queryKey: ["jornada-all"],
+    queryKey: ["jornada-all", filters],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("jornada_normalizada")
         .select("email, turma, toque_num, tipo, dias_antes_compra, canal_normalizado")
-        .limit(5000);
+        .limit(10000);
       if (error) throw error;
       return (data ?? []) as any[];
     },
