@@ -13,9 +13,7 @@ import { Route as VendasRouteImport } from './routes/vendas'
 import { Route as UtmsRouteImport } from './routes/utms'
 import { Route as TurmasRouteImport } from './routes/turmas'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as JornadaRouteImport } from './routes/jornada'
 import { Route as GeografiaRouteImport } from './routes/geografia'
-import { Route as GapsRouteImport } from './routes/gaps'
 import { Route as ContaRouteImport } from './routes/conta'
 import { Route as CanaisRouteImport } from './routes/canais'
 import { Route as IndexRouteImport } from './routes/index'
@@ -41,19 +39,9 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const JornadaRoute = JornadaRouteImport.update({
-  id: '/jornada',
-  path: '/jornada',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const GeografiaRoute = GeografiaRouteImport.update({
   id: '/geografia',
   path: '/geografia',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GapsRoute = GapsRouteImport.update({
-  id: '/gaps',
-  path: '/gaps',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContaRoute = ContaRouteImport.update({
@@ -81,9 +69,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/canais': typeof CanaisRoute
   '/conta': typeof ContaRoute
-  '/gaps': typeof GapsRoute
   '/geografia': typeof GeografiaRoute
-  '/jornada': typeof JornadaRoute
   '/login': typeof LoginRoute
   '/turmas': typeof TurmasRoute
   '/utms': typeof UtmsRoute
@@ -94,9 +80,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/canais': typeof CanaisRoute
   '/conta': typeof ContaRoute
-  '/gaps': typeof GapsRoute
   '/geografia': typeof GeografiaRoute
-  '/jornada': typeof JornadaRoute
   '/login': typeof LoginRoute
   '/turmas': typeof TurmasRoute
   '/utms': typeof UtmsRoute
@@ -108,9 +92,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/canais': typeof CanaisRoute
   '/conta': typeof ContaRoute
-  '/gaps': typeof GapsRoute
   '/geografia': typeof GeografiaRoute
-  '/jornada': typeof JornadaRoute
   '/login': typeof LoginRoute
   '/turmas': typeof TurmasRoute
   '/utms': typeof UtmsRoute
@@ -123,9 +105,7 @@ export interface FileRouteTypes {
     | '/'
     | '/canais'
     | '/conta'
-    | '/gaps'
     | '/geografia'
-    | '/jornada'
     | '/login'
     | '/turmas'
     | '/utms'
@@ -136,9 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/canais'
     | '/conta'
-    | '/gaps'
     | '/geografia'
-    | '/jornada'
     | '/login'
     | '/turmas'
     | '/utms'
@@ -149,9 +127,7 @@ export interface FileRouteTypes {
     | '/'
     | '/canais'
     | '/conta'
-    | '/gaps'
     | '/geografia'
-    | '/jornada'
     | '/login'
     | '/turmas'
     | '/utms'
@@ -163,9 +139,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CanaisRoute: typeof CanaisRoute
   ContaRoute: typeof ContaRoute
-  GapsRoute: typeof GapsRoute
   GeografiaRoute: typeof GeografiaRoute
-  JornadaRoute: typeof JornadaRoute
   LoginRoute: typeof LoginRoute
   TurmasRoute: typeof TurmasRoute
   UtmsRoute: typeof UtmsRoute
@@ -203,25 +177,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/jornada': {
-      id: '/jornada'
-      path: '/jornada'
-      fullPath: '/jornada'
-      preLoaderRoute: typeof JornadaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/geografia': {
       id: '/geografia'
       path: '/geografia'
       fullPath: '/geografia'
       preLoaderRoute: typeof GeografiaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/gaps': {
-      id: '/gaps'
-      path: '/gaps'
-      fullPath: '/gaps'
-      preLoaderRoute: typeof GapsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/conta': {
@@ -259,9 +219,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CanaisRoute: CanaisRoute,
   ContaRoute: ContaRoute,
-  GapsRoute: GapsRoute,
   GeografiaRoute: GeografiaRoute,
-  JornadaRoute: JornadaRoute,
   LoginRoute: LoginRoute,
   TurmasRoute: TurmasRoute,
   UtmsRoute: UtmsRoute,
@@ -271,3 +229,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
