@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      bridge_lead_venda: {
+        Row: {
+          created_at: string
+          id: number
+          is_pre_sale: boolean
+          is_primary: boolean
+          lead_id: string
+          match_lag_days: number | null
+          match_method: string
+          match_score: number
+          venda_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          is_pre_sale: boolean
+          is_primary?: boolean
+          lead_id: string
+          match_lag_days?: number | null
+          match_method: string
+          match_score: number
+          venda_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          is_pre_sale?: boolean
+          is_primary?: boolean
+          lead_id?: string
+          match_lag_days?: number | null
+          match_method?: string
+          match_score?: number
+          venda_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bridge_lead_venda_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "fct_lead"
+            referencedColumns: ["lead_id"]
+          },
+          {
+            foreignKeyName: "bridge_lead_venda_venda_id_fkey"
+            columns: ["venda_id"]
+            isOneToOne: false
+            referencedRelation: "fct_venda"
+            referencedColumns: ["venda_id"]
+          },
+        ]
+      }
       contas: {
         Row: {
           created_at: string
@@ -39,6 +90,122 @@ export type Database = {
             columns: ["produto_principal_id"]
             isOneToOne: false
             referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dim_pessoa: {
+        Row: {
+          cidade: string | null
+          email: string | null
+          email_key: string | null
+          estado: string | null
+          first_seen_at: string
+          last_seen_at: string
+          nome: string | null
+          nome_key: string | null
+          pessoa_id: string
+          phone_key: string | null
+          telefone: string | null
+        }
+        Insert: {
+          cidade?: string | null
+          email?: string | null
+          email_key?: string | null
+          estado?: string | null
+          first_seen_at?: string
+          last_seen_at?: string
+          nome?: string | null
+          nome_key?: string | null
+          pessoa_id?: string
+          phone_key?: string | null
+          telefone?: string | null
+        }
+        Update: {
+          cidade?: string | null
+          email?: string | null
+          email_key?: string | null
+          estado?: string | null
+          first_seen_at?: string
+          last_seen_at?: string
+          nome?: string | null
+          nome_key?: string | null
+          pessoa_id?: string
+          phone_key?: string | null
+          telefone?: string | null
+        }
+        Relationships: []
+      }
+      dq_findings: {
+        Row: {
+          batch_id: string | null
+          created_at: string
+          details: Json | null
+          entity: string
+          entity_id: string | null
+          id: number
+          rule: string
+          severity: string
+        }
+        Insert: {
+          batch_id?: string | null
+          created_at?: string
+          details?: Json | null
+          entity: string
+          entity_id?: string | null
+          id?: number
+          rule: string
+          severity: string
+        }
+        Update: {
+          batch_id?: string | null
+          created_at?: string
+          details?: Json | null
+          entity?: string
+          entity_id?: string | null
+          id?: number
+          rule?: string
+          severity?: string
+        }
+        Relationships: []
+      }
+      dq_resolutions: {
+        Row: {
+          created_at: string
+          entity: string | null
+          entity_id: string | null
+          finding_id: number | null
+          id: number
+          note: string | null
+          resolved_by: string | null
+          rule: string | null
+        }
+        Insert: {
+          created_at?: string
+          entity?: string | null
+          entity_id?: string | null
+          finding_id?: number | null
+          id?: number
+          note?: string | null
+          resolved_by?: string | null
+          rule?: string | null
+        }
+        Update: {
+          created_at?: string
+          entity?: string | null
+          entity_id?: string | null
+          finding_id?: number | null
+          id?: number
+          note?: string | null
+          resolved_by?: string | null
+          rule?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dq_resolutions_finding_id_fkey"
+            columns: ["finding_id"]
+            isOneToOne: false
+            referencedRelation: "dq_findings"
             referencedColumns: ["id"]
           },
         ]
@@ -120,6 +287,217 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "produtos"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      fct_lead: {
+        Row: {
+          canal: string | null
+          cidade: string | null
+          created_at: string
+          data_lead: string | null
+          email: string | null
+          email_key: string | null
+          estado: string | null
+          lead_id: string
+          nome: string | null
+          nome_key: string | null
+          origem_lead: string | null
+          pessoa_id: string | null
+          phone_key: string | null
+          raw: Json | null
+          source: string
+          source_id: string | null
+          status_lead: string | null
+          telefone: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+        }
+        Insert: {
+          canal?: string | null
+          cidade?: string | null
+          created_at?: string
+          data_lead?: string | null
+          email?: string | null
+          email_key?: string | null
+          estado?: string | null
+          lead_id?: string
+          nome?: string | null
+          nome_key?: string | null
+          origem_lead?: string | null
+          pessoa_id?: string | null
+          phone_key?: string | null
+          raw?: Json | null
+          source: string
+          source_id?: string | null
+          status_lead?: string | null
+          telefone?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Update: {
+          canal?: string | null
+          cidade?: string | null
+          created_at?: string
+          data_lead?: string | null
+          email?: string | null
+          email_key?: string | null
+          estado?: string | null
+          lead_id?: string
+          nome?: string | null
+          nome_key?: string | null
+          origem_lead?: string | null
+          pessoa_id?: string | null
+          phone_key?: string | null
+          raw?: Json | null
+          source?: string
+          source_id?: string | null
+          status_lead?: string | null
+          telefone?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fct_lead_pessoa_id_fkey"
+            columns: ["pessoa_id"]
+            isOneToOne: false
+            referencedRelation: "dim_pessoa"
+            referencedColumns: ["pessoa_id"]
+          },
+        ]
+      }
+      fct_venda: {
+        Row: {
+          canal_venda: string | null
+          cidade: string | null
+          created_at: string
+          curso: string | null
+          data_aprovacao: string | null
+          data_criacao: string | null
+          data_matricula: string | null
+          email: string | null
+          email_key: string | null
+          estado: string | null
+          fase: string | null
+          id_venda: string | null
+          nome: string | null
+          nome_key: string | null
+          origem_lead: string | null
+          pacote: string | null
+          pessoa_id: string | null
+          phone_key: string | null
+          proprietario: string | null
+          qtd_pagantes: number | null
+          qtd_parcelas: number | null
+          raw: Json | null
+          source: string
+          source_id: string | null
+          telefone: string | null
+          turma: string | null
+          ultima_origem_lead: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+          valor: number | null
+          valor_convertido: number | null
+          valor_moeda: string | null
+          venda_id: string
+        }
+        Insert: {
+          canal_venda?: string | null
+          cidade?: string | null
+          created_at?: string
+          curso?: string | null
+          data_aprovacao?: string | null
+          data_criacao?: string | null
+          data_matricula?: string | null
+          email?: string | null
+          email_key?: string | null
+          estado?: string | null
+          fase?: string | null
+          id_venda?: string | null
+          nome?: string | null
+          nome_key?: string | null
+          origem_lead?: string | null
+          pacote?: string | null
+          pessoa_id?: string | null
+          phone_key?: string | null
+          proprietario?: string | null
+          qtd_pagantes?: number | null
+          qtd_parcelas?: number | null
+          raw?: Json | null
+          source: string
+          source_id?: string | null
+          telefone?: string | null
+          turma?: string | null
+          ultima_origem_lead?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          valor?: number | null
+          valor_convertido?: number | null
+          valor_moeda?: string | null
+          venda_id?: string
+        }
+        Update: {
+          canal_venda?: string | null
+          cidade?: string | null
+          created_at?: string
+          curso?: string | null
+          data_aprovacao?: string | null
+          data_criacao?: string | null
+          data_matricula?: string | null
+          email?: string | null
+          email_key?: string | null
+          estado?: string | null
+          fase?: string | null
+          id_venda?: string | null
+          nome?: string | null
+          nome_key?: string | null
+          origem_lead?: string | null
+          pacote?: string | null
+          pessoa_id?: string | null
+          phone_key?: string | null
+          proprietario?: string | null
+          qtd_pagantes?: number | null
+          qtd_parcelas?: number | null
+          raw?: Json | null
+          source?: string
+          source_id?: string | null
+          telefone?: string | null
+          turma?: string | null
+          ultima_origem_lead?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          valor?: number | null
+          valor_convertido?: number | null
+          valor_moeda?: string | null
+          venda_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fct_venda_pessoa_id_fkey"
+            columns: ["pessoa_id"]
+            isOneToOne: false
+            referencedRelation: "dim_pessoa"
+            referencedColumns: ["pessoa_id"]
           },
         ]
       }
@@ -357,6 +735,24 @@ export type Database = {
           utm_campaign?: string | null
           utm_content?: string | null
           video_views?: number | null
+        }
+        Relationships: []
+      }
+      meta_pipeline: {
+        Row: {
+          k: string
+          updated_at: string
+          v: Json | null
+        }
+        Insert: {
+          k: string
+          updated_at?: string
+          v?: Json | null
+        }
+        Update: {
+          k?: string
+          updated_at?: string
+          v?: Json | null
         }
         Relationships: []
       }
@@ -1020,10 +1416,12 @@ export type Database = {
           email: string | null
           estado: string | null
           fase: string | null
-          id: number | null
+          id: string | null
           id_venda: string | null
           lead_data_criacao: string | null
           lead_id: string | null
+          match_lag_days: number | null
+          match_score: number | null
           nome: string | null
           origem_lead: string | null
           pacote: string | null
@@ -1069,8 +1467,12 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_valid_email: { Args: { p: string }; Returns: boolean }
+      is_valid_phone: { Args: { p: string }; Returns: boolean }
       norm_email: { Args: { p: string }; Returns: string }
+      norm_nome: { Args: { p: string }; Returns: string }
       norm_phone: { Args: { p: string }; Returns: string }
+      rebuild_core: { Args: never; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "user"
