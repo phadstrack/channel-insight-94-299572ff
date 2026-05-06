@@ -120,7 +120,7 @@ export const importSheet = createServerFn({ method: "POST" })
         const recordsDedup = [...seenL.values(), ...dedupL];
 
         for (let i = 0; i < recordsDedup.length; i += CHUNK) {
-          const chunk = records.slice(i, i + CHUNK);
+          const chunk = recordsDedup.slice(i, i + CHUNK);
           const withId = chunk.filter((r) => r.id_lead_rd);
           const noId   = chunk.filter((r) => !r.id_lead_rd);
           if (withId.length) {
