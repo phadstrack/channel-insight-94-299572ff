@@ -186,14 +186,25 @@ export const importSheet = createServerFn({ method: "POST" })
           };
         }).filter((r) => r.id_venda || r.email);
 
-        // Deduplica por id_venda (mantém última ocorrência)
-        const seenV = new Map<string, any>();
-        const dedupV: any[] = [];
+        // 1) Dedup por nome_venda + valor_convertido (mantém última ocorrência)
+        const seenNV = new Map<string, any>();
+        const noKey: any[] = [];
         for (const r of records) {
-          if (r.id_venda) seenV.set(r.id_venda, r);
-          else dedupV.push(r);
+          const nv = (r.nome_venda ?? "").toString().trim().toLowerCase();
+          const vc = r.valor_convertido ?? 0;
+          if (nv) seenNV.set(`${nv}|${vc}`, r);
+          else noKey.push(r);
         }
-        const recordsDedup: any[] = [...seenV.values(), ...dedupV];
+        const afterNV: any[] = [...seenNV.values(), ...noKey];
+
+        // 2) Fallback: garantir id_venda único no lote
+        const seenId = new Map<string, any>();
+        const noId2: any[] = [];
+        for (const r of afterNV) {
+          if (r.id_venda) seenId.set(r.id_venda, r);
+          else noId2.push(r);
+        }
+        const recordsDedup: any[] = [...seenId.values(), ...noId2];
 
         for (let i = 0; i < recordsDedup.length; i += CHUNK) {
           const chunk = recordsDedup.slice(i, i + CHUNK);
