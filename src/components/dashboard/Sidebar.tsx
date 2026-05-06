@@ -1,15 +1,16 @@
 import { Link } from "@tanstack/react-router";
-import { LayoutDashboard, Radio, GraduationCap, Route as RouteIcon, AlertTriangle, Tag, MapPin, ShoppingCart, Upload, User } from "lucide-react";
+import { LayoutDashboard, Radio, GraduationCap, Tag, MapPin, ShoppingCart, Upload, User, Package, UserCircle, Users } from "lucide-react";
 
 const links = [
   { to: "/", label: "Visão Geral", icon: LayoutDashboard },
   { to: "/vendas", label: "Vendas", icon: ShoppingCart },
-  { to: "/canais", label: "Canais", icon: Radio },
-  { to: "/utms", label: "UTMs", icon: Tag },
   { to: "/turmas", label: "Turmas", icon: GraduationCap },
-  { to: "/jornada", label: "Jornada do Lead", icon: RouteIcon },
+  { to: "/pacotes", label: "Pacotes", icon: Package },
+  { to: "/proprietarios", label: "Proprietários", icon: UserCircle },
+  { to: "/origem", label: "Origem do Lead", icon: Users },
+  { to: "/canais", label: "Canais", icon: Radio },
+  { to: "/utms", label: "Campanhas", icon: Tag },
   { to: "/geografia", label: "Geografia", icon: MapPin },
-  { to: "/gaps", label: "Gaps de Atribuição", icon: AlertTriangle },
   { to: "/admin/import", label: "Importar planilha", icon: Upload },
   { to: "/conta", label: "Minha conta", icon: User },
 ] as const;
