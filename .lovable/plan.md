@@ -1,35 +1,21 @@
-# Resetar senha + tela "Minha conta"
+## Problema
 
-## 1. Resetar senha via migration SQL
+A pré-visualização funciona porque só lê CSV público — não toca no Supabase admin. Já a importação usa `supabaseAdmin` (client com service role) para gravar em `planilha_imports`, `planilha_leads` e `planilha_vendas`. O erro real é:
 
-Migration que executa no banco Supabase:
-
-```sql
-UPDATE auth.users
-SET encrypted_password = crypt('123456', gen_salt('bf'))
-WHERE email = 'raphaelalmeida@febracis.com.br';
+```
+Missing Supabase server environment variables.
+Ensure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are set.
 ```
 
-Após aplicar, login com:
-- E-mail: `raphaelalmeida@febracis.com.br`
-- Senha: `123456`
+Inspecionando o `.env` do projeto, só estão presentes `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` e os `VITE_*`. **Falta o `SUPABASE_SERVICE_ROLE_KEY`** — ele existe nos secrets do Supabase (usado por edge functions), mas não no `.env` que o dev-server do TanStack Start lê em tempo de execução.
 
-## 2. Nova rota `/conta` (Minha conta)
+## Correção
 
-Página acessível pelo sidebar com:
-- **Alterar senha**: campos "nova senha" + "confirmar", validação ≥ 6 caracteres, usa `supabase.auth.updateUser({ password })` no client (a sessão do próprio usuário autoriza).
-- **Sair**: botão de logout.
+1. Adicionar `SUPABASE_SERVICE_ROLE_KEY=...` ao `.env` do projeto, copiando o valor do secret já configurado no Supabase. Isso resolve tanto dev quanto produção (Worker lê do mesmo conjunto de variáveis).
+2. Não há mudança de código necessária — `client.server.ts` já lê `process.env.SUPABASE_SERVICE_ROLE_KEY` corretamente e está protegido contra uso no client.
 
-## 3. Sidebar
-
-Adicionar item "Minha conta" (ícone User) ao final da lista de navegação.
-
-## Arquivos
-
-- `supabase/migrations/<timestamp>_reset_admin_password.sql` (nova)
-- `src/routes/conta.tsx` (nova)
-- `src/components/dashboard/Sidebar.tsx` (adiciona link)
+Após a alteração, reimportar a aba Leads/Vendas funcionará.
 
 ## Segurança
 
-A senha `123456` é fraca — ao logar pela primeira vez, troque imediatamente em `/conta`. O Supabase exige ≥ 6 caracteres por padrão; a validação no client reforça isso.
+`SUPABASE_SERVICE_ROLE_KEY` permanece apenas no servidor (arquivo `.server.ts` é bloqueado pelo Vite no bundle do client). Nada novo é exposto ao navegador.
