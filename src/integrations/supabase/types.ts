@@ -635,6 +635,222 @@ export type Database = {
         }
         Relationships: []
       }
+      rd_leads: {
+        Row: {
+          canal: string | null
+          cidade: string | null
+          data_criacao: string | null
+          email: string | null
+          estado: string | null
+          id: number
+          id_lead_rd: string | null
+          import_batch_id: string | null
+          imported_at: string
+          nome: string | null
+          objecoes: string | null
+          origem_lead: string | null
+          proprietario: string | null
+          raw: Json | null
+          status_lead: string | null
+          telefone: string | null
+          unidade_rd: string | null
+          url_cadastro: string | null
+          utm_campanha: string | null
+          utm_conteudo: string | null
+          utm_midia: string | null
+          utm_origem: string | null
+          utm_termo: string | null
+        }
+        Insert: {
+          canal?: string | null
+          cidade?: string | null
+          data_criacao?: string | null
+          email?: string | null
+          estado?: string | null
+          id?: number
+          id_lead_rd?: string | null
+          import_batch_id?: string | null
+          imported_at?: string
+          nome?: string | null
+          objecoes?: string | null
+          origem_lead?: string | null
+          proprietario?: string | null
+          raw?: Json | null
+          status_lead?: string | null
+          telefone?: string | null
+          unidade_rd?: string | null
+          url_cadastro?: string | null
+          utm_campanha?: string | null
+          utm_conteudo?: string | null
+          utm_midia?: string | null
+          utm_origem?: string | null
+          utm_termo?: string | null
+        }
+        Update: {
+          canal?: string | null
+          cidade?: string | null
+          data_criacao?: string | null
+          email?: string | null
+          estado?: string | null
+          id?: number
+          id_lead_rd?: string | null
+          import_batch_id?: string | null
+          imported_at?: string
+          nome?: string | null
+          objecoes?: string | null
+          origem_lead?: string | null
+          proprietario?: string | null
+          raw?: Json | null
+          status_lead?: string | null
+          telefone?: string | null
+          unidade_rd?: string | null
+          url_cadastro?: string | null
+          utm_campanha?: string | null
+          utm_conteudo?: string | null
+          utm_midia?: string | null
+          utm_origem?: string | null
+          utm_termo?: string | null
+        }
+        Relationships: []
+      }
+      rd_vendas: {
+        Row: {
+          canal_venda: string | null
+          checkout: string | null
+          cidade: string | null
+          codigo_curso: string | null
+          codigo_unidade: string | null
+          curso: string | null
+          data_aprovacao: string | null
+          data_criacao: string | null
+          data_matricula: string | null
+          data_nascimento: string | null
+          email: string | null
+          estado: string | null
+          fase: string | null
+          id: number
+          id_venda: string | null
+          import_batch_id: string | null
+          imported_at: string
+          lead_origem: string | null
+          mes_venda: string | null
+          nome_cliente: string | null
+          nome_venda: string | null
+          origem_lead: string | null
+          pacote: string | null
+          promocao: string | null
+          proprietario: string | null
+          qtd_pagantes: number | null
+          qtd_parcelas: number | null
+          raw: Json | null
+          sexo: string | null
+          telefone: string | null
+          turma: string | null
+          ultima_origem_lead: string | null
+          unidade_geradora: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_gclid: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+          valor: number | null
+          valor_convertido: number | null
+          valor_moeda: string | null
+          venda_pai: string | null
+        }
+        Insert: {
+          canal_venda?: string | null
+          checkout?: string | null
+          cidade?: string | null
+          codigo_curso?: string | null
+          codigo_unidade?: string | null
+          curso?: string | null
+          data_aprovacao?: string | null
+          data_criacao?: string | null
+          data_matricula?: string | null
+          data_nascimento?: string | null
+          email?: string | null
+          estado?: string | null
+          fase?: string | null
+          id?: number
+          id_venda?: string | null
+          import_batch_id?: string | null
+          imported_at?: string
+          lead_origem?: string | null
+          mes_venda?: string | null
+          nome_cliente?: string | null
+          nome_venda?: string | null
+          origem_lead?: string | null
+          pacote?: string | null
+          promocao?: string | null
+          proprietario?: string | null
+          qtd_pagantes?: number | null
+          qtd_parcelas?: number | null
+          raw?: Json | null
+          sexo?: string | null
+          telefone?: string | null
+          turma?: string | null
+          ultima_origem_lead?: string | null
+          unidade_geradora?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_gclid?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          valor?: number | null
+          valor_convertido?: number | null
+          valor_moeda?: string | null
+          venda_pai?: string | null
+        }
+        Update: {
+          canal_venda?: string | null
+          checkout?: string | null
+          cidade?: string | null
+          codigo_curso?: string | null
+          codigo_unidade?: string | null
+          curso?: string | null
+          data_aprovacao?: string | null
+          data_criacao?: string | null
+          data_matricula?: string | null
+          data_nascimento?: string | null
+          email?: string | null
+          estado?: string | null
+          fase?: string | null
+          id?: number
+          id_venda?: string | null
+          import_batch_id?: string | null
+          imported_at?: string
+          lead_origem?: string | null
+          mes_venda?: string | null
+          nome_cliente?: string | null
+          nome_venda?: string | null
+          origem_lead?: string | null
+          pacote?: string | null
+          promocao?: string | null
+          proprietario?: string | null
+          qtd_pagantes?: number | null
+          qtd_parcelas?: number | null
+          raw?: Json | null
+          sexo?: string | null
+          telefone?: string | null
+          turma?: string | null
+          ultima_origem_lead?: string | null
+          unidade_geradora?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_gclid?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          valor?: number | null
+          valor_convertido?: number | null
+          valor_moeda?: string | null
+          venda_pai?: string | null
+        }
+        Relationships: []
+      }
       regras_classificacao: {
         Row: {
           coluna: string
@@ -886,6 +1102,40 @@ export type Database = {
           ticket_medio: number | null
           turma: string | null
           vendas: number | null
+        }
+        Relationships: []
+      }
+      vendas_atribuidas_v2: {
+        Row: {
+          canal: string | null
+          canal_venda: string | null
+          cidade: string | null
+          data_aprovacao: string | null
+          data_criacao: string | null
+          data_matricula: string | null
+          email: string | null
+          estado: string | null
+          fase: string | null
+          id: number | null
+          id_venda: string | null
+          lead_data_criacao: string | null
+          lead_id: number | null
+          nome: string | null
+          origem_lead: string | null
+          pacote: string | null
+          proprietario: string | null
+          qtd_pagantes: number | null
+          qtd_parcelas: number | null
+          tipo_atribuicao: string | null
+          turma: string | null
+          ultima_origem_lead: string | null
+          utm_campanha: string | null
+          utm_conteudo: string | null
+          utm_midia: string | null
+          utm_origem: string | null
+          utm_termo: string | null
+          valor: number | null
+          valor_convertido: number | null
         }
         Relationships: []
       }
