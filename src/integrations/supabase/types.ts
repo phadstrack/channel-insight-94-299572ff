@@ -123,6 +123,90 @@ export type Database = {
           },
         ]
       }
+      google_ads_spend: {
+        Row: {
+          adgroup_id: string | null
+          adgroup_name: string | null
+          average_cpc: number | null
+          campaign_id: string | null
+          campaign_name: string | null
+          campaign_type: string | null
+          clicks: number | null
+          conversion_value: number | null
+          conversions: number | null
+          cost: number | null
+          cost_per_conversion: number | null
+          created_at: string | null
+          ctr: number | null
+          customer_id: string | null
+          customer_name: string | null
+          date: string
+          id: number
+          impressions: number | null
+          keyword: string | null
+          keyword_match_type: string | null
+          quality_score: number | null
+          roas: number | null
+          search_impression_share: number | null
+          utm_campaign: string | null
+          utm_content: string | null
+        }
+        Insert: {
+          adgroup_id?: string | null
+          adgroup_name?: string | null
+          average_cpc?: number | null
+          campaign_id?: string | null
+          campaign_name?: string | null
+          campaign_type?: string | null
+          clicks?: number | null
+          conversion_value?: number | null
+          conversions?: number | null
+          cost?: number | null
+          cost_per_conversion?: number | null
+          created_at?: string | null
+          ctr?: number | null
+          customer_id?: string | null
+          customer_name?: string | null
+          date: string
+          id?: number
+          impressions?: number | null
+          keyword?: string | null
+          keyword_match_type?: string | null
+          quality_score?: number | null
+          roas?: number | null
+          search_impression_share?: number | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+        }
+        Update: {
+          adgroup_id?: string | null
+          adgroup_name?: string | null
+          average_cpc?: number | null
+          campaign_id?: string | null
+          campaign_name?: string | null
+          campaign_type?: string | null
+          clicks?: number | null
+          conversion_value?: number | null
+          conversions?: number | null
+          cost?: number | null
+          cost_per_conversion?: number | null
+          created_at?: string | null
+          ctr?: number | null
+          customer_id?: string | null
+          customer_name?: string | null
+          date?: string
+          id?: number
+          impressions?: number | null
+          keyword?: string | null
+          keyword_match_type?: string | null
+          quality_score?: number | null
+          roas?: number | null
+          search_impression_share?: number | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+        }
+        Relationships: []
+      }
       jornada_normalizada: {
         Row: {
           canal_normalizado: string | null
@@ -177,6 +261,102 @@ export type Database = {
           utm_midia?: string | null
           utm_origem?: string | null
           utm_termo?: string | null
+        }
+        Relationships: []
+      }
+      meta_ads_spend: {
+        Row: {
+          account_id: string | null
+          ad_id: string | null
+          ad_name: string | null
+          adset_id: string | null
+          adset_name: string | null
+          campaign_id: string | null
+          campaign_name: string | null
+          clicks: number | null
+          conversion_value: number | null
+          conversions: number | null
+          cost_per_lead: number | null
+          cpc: number | null
+          cpm: number | null
+          created_at: string | null
+          ctr: number | null
+          date: string
+          frequency: number | null
+          id: number
+          impressions: number | null
+          leads: number | null
+          objective: string | null
+          placement: string | null
+          reach: number | null
+          roas: number | null
+          spend: number | null
+          unique_clicks: number | null
+          utm_campaign: string | null
+          utm_content: string | null
+          video_views: number | null
+        }
+        Insert: {
+          account_id?: string | null
+          ad_id?: string | null
+          ad_name?: string | null
+          adset_id?: string | null
+          adset_name?: string | null
+          campaign_id?: string | null
+          campaign_name?: string | null
+          clicks?: number | null
+          conversion_value?: number | null
+          conversions?: number | null
+          cost_per_lead?: number | null
+          cpc?: number | null
+          cpm?: number | null
+          created_at?: string | null
+          ctr?: number | null
+          date: string
+          frequency?: number | null
+          id?: number
+          impressions?: number | null
+          leads?: number | null
+          objective?: string | null
+          placement?: string | null
+          reach?: number | null
+          roas?: number | null
+          spend?: number | null
+          unique_clicks?: number | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          video_views?: number | null
+        }
+        Update: {
+          account_id?: string | null
+          ad_id?: string | null
+          ad_name?: string | null
+          adset_id?: string | null
+          adset_name?: string | null
+          campaign_id?: string | null
+          campaign_name?: string | null
+          clicks?: number | null
+          conversion_value?: number | null
+          conversions?: number | null
+          cost_per_lead?: number | null
+          cpc?: number | null
+          cpm?: number | null
+          created_at?: string | null
+          ctr?: number | null
+          date?: string
+          frequency?: number | null
+          id?: number
+          impressions?: number | null
+          leads?: number | null
+          objective?: string | null
+          placement?: string | null
+          reach?: number | null
+          roas?: number | null
+          spend?: number | null
+          unique_clicks?: number | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          video_views?: number | null
         }
         Relationships: []
       }
@@ -526,6 +706,22 @@ export type Database = {
       }
     }
     Functions: {
+      get_vendas_agg: {
+        Args: {
+          p_canais?: string[]
+          p_date_from?: string
+          p_date_to?: string
+          p_estados?: string[]
+          p_search?: string
+          p_tipo?: string
+          p_turmas?: string[]
+        }
+        Returns: {
+          com_lead_count: number
+          receita_sum: number
+          total_count: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
