@@ -34,32 +34,74 @@ export async function fetchCsvRows(csvUrl: string): Promise<Record<string, strin
   return parsed.data as Record<string, string>[];
 }
 
-// Mapeamento flexível de nome de coluna → chave canônica
+// Mapeamento canônico → possíveis labels (case/acento-insensitive)
 const COLUMN_ALIASES: Record<string, string[]> = {
-  email: ["email", "e-mail", "e_mail", "mail"],
-  telefone: ["telefone", "phone", "celular", "whatsapp"],
-  nome: ["nome", "name", "nome_completo", "full_name"],
-  data_lead: ["data_lead", "data lead", "data do lead", "lead_date", "criado_em", "data_criacao"],
-  data_matricula: ["data_matricula", "data matrícula", "data da matricula", "data_da_matricula", "data_venda", "data da venda"],
-  valor_convertido: ["valor_convertido", "valor", "valor_venda", "valor convertido", "receita"],
-  turma: ["turma", "edicao", "edição", "classe"],
-  cidade: ["cidade", "city"],
-  estado: ["estado", "uf", "state"],
-  utm_source: ["utm_source", "utm source", "source", "origem_utm"],
-  utm_medium: ["utm_medium", "utm medium", "medium", "midia_utm"],
-  utm_campaign: ["utm_campaign", "utm campaign", "campaign", "campanha"],
-  utm_content: ["utm_content", "utm content", "content", "conteudo"],
-  utm_term: ["utm_term", "utm term", "term", "termo"],
-  origem_lead: ["origem_lead", "origem do lead", "origem", "ultima_origem_lead", "última origem do lead"],
+  // ===== Leads (RD Station) =====
+  id_lead_rd: ["id do lead", "id_lead", "lead id", "id"],
+  email: ["email", "e-mail", "mail", "cliente pessoal: email", "cliente pessoal email"],
+  nome: ["sobrenome", "nome", "nome do cliente", "name", "full_name"],
+  telefone: ["celular", "celular(whatsapp)", "celular whatsapp", "telefone", "phone", "whatsapp"],
+  proprietario: ["proprietário do lead", "proprietario do lead", "proprietário da venda", "proprietario da venda", "proprietario", "owner"],
+  status_lead: ["status do lead", "status"],
+  unidade_rd: ["unidade rd", "unidade"],
+  origem_lead: ["origem do lead", "origem"],
+  ultima_origem_lead: ["última origem do lead", "ultima origem do lead", "última origem", "last origin"],
+  url_cadastro: ["url de cadastro", "url cadastro", "lp", "landing page"],
+  data_lead_criacao: ["data e hora de criação", "data e hora de criacao", "data de criação", "data de criacao", "criado em", "created_at"],
+  objecoes: ["objeções", "objecoes"],
+  // UTMs (rd usa nomes em PT, vendas usa em EN)
+  utm_origem: ["utm origem", "utm_origem", "utm source", "utm_source", "source"],
+  utm_midia: ["utm média", "utm media", "utm_media", "utm_medium", "utm medium", "medium"],
+  utm_campanha: ["utm campanha", "utm_campanha", "utm campaign", "utm_campaign", "campaign"],
+  utm_conteudo: ["utm conteúdo", "utm conteudo", "utm_conteudo", "utm content", "utm_content", "content"],
+  utm_termo: ["utm termo", "utm_termo", "utm term", "utm_term", "term"],
+  utm_gclid: ["utm gclid", "utm_gclid", "gclid"],
+  // Geo (várias variantes na planilha de leads)
+  cidade: ["cidade", "cidade(2)", "cidade de residência", "cidade de residencia", "city"],
+  estado: ["estado", "estado(2)", "estado de residência", "estado de residencia", "uf", "state"],
+  // ===== Vendas =====
+  id_venda: ["id da venda", "id_venda", "id venda"],
+  nome_venda: ["nome da venda"],
+  lead_origem: ["lead de origem"],
+  curso: ["curso(2)", "curso"],
+  codigo_curso: ["código do curso", "codigo do curso", "codigo_curso"],
+  unidade_geradora: ["unidade geradora da venda", "unidade geradora"],
+  codigo_unidade: ["codigodaunidadegeradora", "codigo da unidade geradora"],
+  fase: ["fase"],
+  valor: ["valor"],
+  valor_moeda: ["valor moeda"],
+  valor_convertido: ["valor (convertido)", "valor convertido"],
+  valor_convertido_moeda: ["valor (convertido) moeda"],
+  qtd_pagantes: ["quantidade de pagantes", "qtd pagantes"],
+  qtd_parcelas: ["quantidade de parcelas", "qtd parcelas"],
+  promocao: ["promoção", "promocao"],
+  venda_pai: ["venda pai"],
+  pacote: ["pacote do aluno", "pacote"],
+  canal_venda: ["canal da venda", "canal"],
+  checkout: ["checkout cispay", "checkout"],
+  turma: ["turma(3)", "turma", "edição", "edicao", "classe"],
+  mes_venda: ["mês da venda", "mes da venda"],
+  data_nascimento: ["data de nascimento"],
+  sexo: ["sexo"],
+  data_venda_criacao: ["data de criação", "data de criacao"],
+  data_aprovacao: ["data de aprovação", "data de aprovacao"],
+  data_matricula: ["data da matrícula", "data da matricula", "data_matricula"],
 };
 
 function normHeader(s: string) {
-  return s.trim().toLowerCase().replace(/[\s_-]+/g, "_");
+  return s.trim().toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[\s_-]+/g, " ")
+    .trim();
 }
 
 export function buildHeaderMap(headers: string[]): Record<string, string> {
   const map: Record<string, string> = {};
-  const normToOrig = new Map(headers.map((h) => [normHeader(h), h]));
+  const normToOrig = new Map<string, string>();
+  for (const h of headers) {
+    const k = normHeader(h);
+    if (!normToOrig.has(k)) normToOrig.set(k, h);
+  }
   for (const [canonical, aliases] of Object.entries(COLUMN_ALIASES)) {
     for (const alias of aliases) {
       const key = normHeader(alias);
@@ -80,11 +122,15 @@ export function pick(row: Record<string, string>, headerMap: Record<string, stri
   return String(v).trim();
 }
 
+// Aceita ISO, dd/mm/yyyy, "Date(2026,3,18,20,32,0)" (Google Sheets — mês 0-indexed)
 export function parseDate(s: string | null): string | null {
   if (!s) return null;
-  // tenta ISO primeiro
+  const gs = s.match(/^Date\((\d+),(\d+),(\d+)(?:,(\d+),(\d+),(\d+))?\)$/);
+  if (gs) {
+    const y = +gs[1], mo = +gs[2] + 1, d = +gs[3];
+    return `${y}-${String(mo).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+  }
   if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
-  // dd/mm/yyyy
   const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
   if (m) {
     const d = m[1].padStart(2, "0");
@@ -98,9 +144,35 @@ export function parseDate(s: string | null): string | null {
   return null;
 }
 
+export function parseTimestamp(s: string | null): string | null {
+  if (!s) return null;
+  const gs = s.match(/^Date\((\d+),(\d+),(\d+)(?:,(\d+),(\d+),(\d+))?\)$/);
+  if (gs) {
+    const y = +gs[1], mo = +gs[2], d = +gs[3];
+    const h = gs[4] ? +gs[4] : 0, mi = gs[5] ? +gs[5] : 0, se = gs[6] ? +gs[6] : 0;
+    return new Date(Date.UTC(y, mo, d, h, mi, se)).toISOString();
+  }
+  const d = new Date(s);
+  if (!isNaN(d.getTime())) return d.toISOString();
+  const date = parseDate(s);
+  return date ? `${date}T00:00:00Z` : null;
+}
+
 export function parseNumber(s: string | null): number {
   if (!s) return 0;
   const cleaned = s.replace(/[^\d,.-]/g, "").replace(/\.(?=\d{3}(\D|$))/g, "").replace(",", ".");
   const n = Number(cleaned);
   return isNaN(n) ? 0 : n;
+}
+
+export function parseInt0(s: string | null): number | null {
+  if (!s) return null;
+  const n = parseNumber(s);
+  return isNaN(n) ? null : Math.round(n);
+}
+
+// Title-case "SÃO PAULO" → "São Paulo"
+export function titleCase(s: string | null): string | null {
+  if (!s) return null;
+  return s.toLowerCase().replace(/(^|\s|-)([a-zà-ú])/g, (_, p1, p2) => p1 + p2.toUpperCase());
 }

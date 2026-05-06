@@ -996,75 +996,8 @@ export type Database = {
           },
         ]
       }
-      vendas_atribuidas: {
-        Row: {
-          canal: string | null
-          cidade: string | null
-          created_at: string | null
-          data_matricula: string | null
-          email: string | null
-          estado: string | null
-          id: number
-          nome: string | null
-          tipo_atribuicao: string | null
-          turma: string | null
-          utm_campanha: string | null
-          utm_conteudo: string | null
-          utm_midia: string | null
-          utm_origem: string | null
-          utm_termo: string | null
-          valor_convertido: number | null
-        }
-        Insert: {
-          canal?: string | null
-          cidade?: string | null
-          created_at?: string | null
-          data_matricula?: string | null
-          email?: string | null
-          estado?: string | null
-          id?: number
-          nome?: string | null
-          tipo_atribuicao?: string | null
-          turma?: string | null
-          utm_campanha?: string | null
-          utm_conteudo?: string | null
-          utm_midia?: string | null
-          utm_origem?: string | null
-          utm_termo?: string | null
-          valor_convertido?: number | null
-        }
-        Update: {
-          canal?: string | null
-          cidade?: string | null
-          created_at?: string | null
-          data_matricula?: string | null
-          email?: string | null
-          estado?: string | null
-          id?: number
-          nome?: string | null
-          tipo_atribuicao?: string | null
-          turma?: string | null
-          utm_campanha?: string | null
-          utm_conteudo?: string | null
-          utm_midia?: string | null
-          utm_origem?: string | null
-          utm_termo?: string | null
-          valor_convertido?: number | null
-        }
-        Relationships: []
-      }
     }
     Views: {
-      v_canais: {
-        Row: {
-          canal: string | null
-          receita: number | null
-          ticket_medio: number | null
-          tipo_atribuicao: string | null
-          vendas: number | null
-        }
-        Relationships: []
-      }
       v_gaps: {
         Row: {
           categoria_origem: string | null
@@ -1075,44 +1008,15 @@ export type Database = {
         }
         Relationships: []
       }
-      v_kpis: {
-        Row: {
-          pct_existente: number | null
-          pct_inferida: number | null
-          pct_sem_atribuicao: number | null
-          receita_total: number | null
-          ticket_medio: number | null
-          total_vendas: number | null
-        }
-        Relationships: []
-      }
-      v_mensal: {
-        Row: {
-          canal: string | null
-          mes: string | null
-          receita: number | null
-          vendas: number | null
-        }
-        Relationships: []
-      }
-      v_turmas: {
-        Row: {
-          canal: string | null
-          receita: number | null
-          ticket_medio: number | null
-          turma: string | null
-          vendas: number | null
-        }
-        Relationships: []
-      }
-      vendas_atribuidas_v2: {
+      vendas_atribuidas: {
         Row: {
           canal: string | null
           canal_venda: string | null
           cidade: string | null
+          created_at: string | null
           data_aprovacao: string | null
-          data_criacao: string | null
           data_matricula: string | null
+          data_venda: string | null
           email: string | null
           estado: string | null
           fase: string | null

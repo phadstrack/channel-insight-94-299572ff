@@ -12,10 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as VendasRouteImport } from './routes/vendas'
 import { Route as UtmsRouteImport } from './routes/utms'
 import { Route as TurmasRouteImport } from './routes/turmas'
+import { Route as ProprietariosRouteImport } from './routes/proprietarios'
+import { Route as PacotesRouteImport } from './routes/pacotes'
+import { Route as OrigemRouteImport } from './routes/origem'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as JornadaRouteImport } from './routes/jornada'
 import { Route as GeografiaRouteImport } from './routes/geografia'
-import { Route as GapsRouteImport } from './routes/gaps'
 import { Route as ContaRouteImport } from './routes/conta'
 import { Route as CanaisRouteImport } from './routes/canais'
 import { Route as IndexRouteImport } from './routes/index'
@@ -36,24 +37,29 @@ const TurmasRoute = TurmasRouteImport.update({
   path: '/turmas',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProprietariosRoute = ProprietariosRouteImport.update({
+  id: '/proprietarios',
+  path: '/proprietarios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PacotesRoute = PacotesRouteImport.update({
+  id: '/pacotes',
+  path: '/pacotes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrigemRoute = OrigemRouteImport.update({
+  id: '/origem',
+  path: '/origem',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const JornadaRoute = JornadaRouteImport.update({
-  id: '/jornada',
-  path: '/jornada',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const GeografiaRoute = GeografiaRouteImport.update({
   id: '/geografia',
   path: '/geografia',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GapsRoute = GapsRouteImport.update({
-  id: '/gaps',
-  path: '/gaps',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContaRoute = ContaRouteImport.update({
@@ -81,10 +87,11 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/canais': typeof CanaisRoute
   '/conta': typeof ContaRoute
-  '/gaps': typeof GapsRoute
   '/geografia': typeof GeografiaRoute
-  '/jornada': typeof JornadaRoute
   '/login': typeof LoginRoute
+  '/origem': typeof OrigemRoute
+  '/pacotes': typeof PacotesRoute
+  '/proprietarios': typeof ProprietariosRoute
   '/turmas': typeof TurmasRoute
   '/utms': typeof UtmsRoute
   '/vendas': typeof VendasRoute
@@ -94,10 +101,11 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/canais': typeof CanaisRoute
   '/conta': typeof ContaRoute
-  '/gaps': typeof GapsRoute
   '/geografia': typeof GeografiaRoute
-  '/jornada': typeof JornadaRoute
   '/login': typeof LoginRoute
+  '/origem': typeof OrigemRoute
+  '/pacotes': typeof PacotesRoute
+  '/proprietarios': typeof ProprietariosRoute
   '/turmas': typeof TurmasRoute
   '/utms': typeof UtmsRoute
   '/vendas': typeof VendasRoute
@@ -108,10 +116,11 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/canais': typeof CanaisRoute
   '/conta': typeof ContaRoute
-  '/gaps': typeof GapsRoute
   '/geografia': typeof GeografiaRoute
-  '/jornada': typeof JornadaRoute
   '/login': typeof LoginRoute
+  '/origem': typeof OrigemRoute
+  '/pacotes': typeof PacotesRoute
+  '/proprietarios': typeof ProprietariosRoute
   '/turmas': typeof TurmasRoute
   '/utms': typeof UtmsRoute
   '/vendas': typeof VendasRoute
@@ -123,10 +132,11 @@ export interface FileRouteTypes {
     | '/'
     | '/canais'
     | '/conta'
-    | '/gaps'
     | '/geografia'
-    | '/jornada'
     | '/login'
+    | '/origem'
+    | '/pacotes'
+    | '/proprietarios'
     | '/turmas'
     | '/utms'
     | '/vendas'
@@ -136,10 +146,11 @@ export interface FileRouteTypes {
     | '/'
     | '/canais'
     | '/conta'
-    | '/gaps'
     | '/geografia'
-    | '/jornada'
     | '/login'
+    | '/origem'
+    | '/pacotes'
+    | '/proprietarios'
     | '/turmas'
     | '/utms'
     | '/vendas'
@@ -149,10 +160,11 @@ export interface FileRouteTypes {
     | '/'
     | '/canais'
     | '/conta'
-    | '/gaps'
     | '/geografia'
-    | '/jornada'
     | '/login'
+    | '/origem'
+    | '/pacotes'
+    | '/proprietarios'
     | '/turmas'
     | '/utms'
     | '/vendas'
@@ -163,10 +175,11 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CanaisRoute: typeof CanaisRoute
   ContaRoute: typeof ContaRoute
-  GapsRoute: typeof GapsRoute
   GeografiaRoute: typeof GeografiaRoute
-  JornadaRoute: typeof JornadaRoute
   LoginRoute: typeof LoginRoute
+  OrigemRoute: typeof OrigemRoute
+  PacotesRoute: typeof PacotesRoute
+  ProprietariosRoute: typeof ProprietariosRoute
   TurmasRoute: typeof TurmasRoute
   UtmsRoute: typeof UtmsRoute
   VendasRoute: typeof VendasRoute
@@ -196,6 +209,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TurmasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/proprietarios': {
+      id: '/proprietarios'
+      path: '/proprietarios'
+      fullPath: '/proprietarios'
+      preLoaderRoute: typeof ProprietariosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pacotes': {
+      id: '/pacotes'
+      path: '/pacotes'
+      fullPath: '/pacotes'
+      preLoaderRoute: typeof PacotesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/origem': {
+      id: '/origem'
+      path: '/origem'
+      fullPath: '/origem'
+      preLoaderRoute: typeof OrigemRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -203,25 +237,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/jornada': {
-      id: '/jornada'
-      path: '/jornada'
-      fullPath: '/jornada'
-      preLoaderRoute: typeof JornadaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/geografia': {
       id: '/geografia'
       path: '/geografia'
       fullPath: '/geografia'
       preLoaderRoute: typeof GeografiaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/gaps': {
-      id: '/gaps'
-      path: '/gaps'
-      fullPath: '/gaps'
-      preLoaderRoute: typeof GapsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/conta': {
@@ -259,10 +279,11 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CanaisRoute: CanaisRoute,
   ContaRoute: ContaRoute,
-  GapsRoute: GapsRoute,
   GeografiaRoute: GeografiaRoute,
-  JornadaRoute: JornadaRoute,
   LoginRoute: LoginRoute,
+  OrigemRoute: OrigemRoute,
+  PacotesRoute: PacotesRoute,
+  ProprietariosRoute: ProprietariosRoute,
   TurmasRoute: TurmasRoute,
   UtmsRoute: UtmsRoute,
   VendasRoute: VendasRoute,
