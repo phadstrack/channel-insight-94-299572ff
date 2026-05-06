@@ -24,7 +24,7 @@ const CHANNELS = ["Todos", ...CANAIS_LIST];
 
 function Canais() {
   const { filters } = useFilters();
-  const [canal, setCanal] = useState<string>("Meta/Instagram");
+  const [canal, setCanal] = useState<string>("Mídia");
 
   const { data: rows, isLoading } = useQuery({
     queryKey: ["canais-detail", canal, filters],
