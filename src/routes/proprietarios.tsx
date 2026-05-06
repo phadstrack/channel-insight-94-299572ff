@@ -9,7 +9,7 @@ import { fmtBRL, fmtNum } from "@/lib/format";
 
 export const Route = createFileRoute("/proprietarios")({
   head: () => ({ meta: [{ title: "Proprietários · Febracis MKT" }] }),
-  component: Proprietarios;
+  component: Proprietarios,
 });
 
 function Proprietarios() {
