@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { context.supabase } from "@/integrations/supabase/client.server";
 import {
   buildCsvUrl,
   buildHeaderMap,
@@ -67,7 +67,7 @@ export const importSheet = createServerFn({ method: "POST" })
     }
 
     // batch
-    const { data: batch, error: batchErr } = await supabaseAdmin
+    const { data: batch, error: batchErr } = await context.supabase
       .from("planilha_imports")
       .insert({
         sheet_url: data.sheetUrl,
@@ -115,7 +115,7 @@ export const importSheet = createServerFn({ method: "POST" })
         // chunks de 500
         for (let i = 0; i < records.length; i += 500) {
           const chunk = records.slice(i, i + 500);
-          const { error } = await supabaseAdmin
+          const { error } = await context.supabase
             .from("planilha_leads")
             .upsert(chunk as any, {
               onConflict: "email,data_lead,utm_source,utm_campaign",
@@ -123,7 +123,7 @@ export const importSheet = createServerFn({ method: "POST" })
             });
           if (error) {
             // fallback insert sem onConflict (índice expression-based pode não casar com upsert)
-            const { error: e2 } = await supabaseAdmin.from("planilha_leads").insert(chunk as any);
+            const { error: e2 } = await context.supabase.from("planilha_leads").insert(chunk as any);
             if (e2 && !e2.message.includes("duplicate")) throw e2;
           }
           inseridas += chunk.length;
@@ -156,13 +156,13 @@ export const importSheet = createServerFn({ method: "POST" })
 
         for (let i = 0; i < records.length; i += 500) {
           const chunk = records.slice(i, i + 500);
-          const { error } = await supabaseAdmin.from("planilha_vendas").insert(chunk as any);
+          const { error } = await context.supabase.from("planilha_vendas").insert(chunk as any);
           if (error && !error.message.includes("duplicate")) throw error;
           inseridas += chunk.length;
         }
 
         // Atribuição last-touch: para cada venda recém-importada, buscar lead mais recente do mesmo email
-        const { data: vendasBatch } = await supabaseAdmin
+        const { data: vendasBatch } = await context.supabase
           .from("planilha_vendas")
           .select("id, email, data_matricula")
           .eq("import_batch_id", batchId);
@@ -170,7 +170,7 @@ export const importSheet = createServerFn({ method: "POST" })
         if (vendasBatch?.length) {
           for (const v of vendasBatch) {
             if (!v.email || !v.data_matricula) continue;
-            const { data: lead } = await supabaseAdmin
+            const { data: lead } = await context.supabase
               .from("planilha_leads")
               .select("id, data_lead")
               .ilike("email", v.email)
@@ -186,7 +186,7 @@ export const importSheet = createServerFn({ method: "POST" })
                         86400000,
                     )
                   : null;
-              await supabaseAdmin
+              await context.supabase
                 .from("planilha_vendas")
                 .update({ lead_id: lead.id, lead_data: lead.data_lead, dias_lead_para_venda: dias })
                 .eq("id", v.id);
@@ -195,14 +195,14 @@ export const importSheet = createServerFn({ method: "POST" })
         }
       }
 
-      await supabaseAdmin
+      await context.supabase
         .from("planilha_imports")
         .update({ status: "success", linhas_inseridas: inseridas })
         .eq("id", batchId);
 
       return { ok: true, batchId, inseridas };
     } catch (err: any) {
-      await supabaseAdmin
+      await context.supabase
         .from("planilha_imports")
         .update({ status: "error", erro: err?.message ?? String(err) })
         .eq("id", batchId);
