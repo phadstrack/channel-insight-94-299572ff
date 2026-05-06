@@ -402,6 +402,191 @@ export type Database = {
           },
         ]
       }
+      planilha_imports: {
+        Row: {
+          aba: string
+          created_at: string
+          created_by: string | null
+          erro: string | null
+          id: string
+          linhas_atualizadas: number
+          linhas_inseridas: number
+          sheet_url: string
+          status: string
+        }
+        Insert: {
+          aba: string
+          created_at?: string
+          created_by?: string | null
+          erro?: string | null
+          id?: string
+          linhas_atualizadas?: number
+          linhas_inseridas?: number
+          sheet_url: string
+          status?: string
+        }
+        Update: {
+          aba?: string
+          created_at?: string
+          created_by?: string | null
+          erro?: string | null
+          id?: string
+          linhas_atualizadas?: number
+          linhas_inseridas?: number
+          sheet_url?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      planilha_leads: {
+        Row: {
+          canal: string | null
+          data_lead: string | null
+          email: string | null
+          id: number
+          import_batch_id: string | null
+          imported_at: string
+          nome: string | null
+          origem_lead: string | null
+          raw: Json | null
+          telefone: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+        }
+        Insert: {
+          canal?: string | null
+          data_lead?: string | null
+          email?: string | null
+          id?: number
+          import_batch_id?: string | null
+          imported_at?: string
+          nome?: string | null
+          origem_lead?: string | null
+          raw?: Json | null
+          telefone?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Update: {
+          canal?: string | null
+          data_lead?: string | null
+          email?: string | null
+          id?: number
+          import_batch_id?: string | null
+          imported_at?: string
+          nome?: string | null
+          origem_lead?: string | null
+          raw?: Json | null
+          telefone?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planilha_leads_import_batch_id_fkey"
+            columns: ["import_batch_id"]
+            isOneToOne: false
+            referencedRelation: "planilha_imports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      planilha_vendas: {
+        Row: {
+          canal: string | null
+          cidade: string | null
+          data_matricula: string | null
+          dias_lead_para_venda: number | null
+          email: string | null
+          estado: string | null
+          id: number
+          import_batch_id: string | null
+          imported_at: string
+          lead_data: string | null
+          lead_id: number | null
+          nome: string | null
+          raw: Json | null
+          telefone: string | null
+          turma: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+          valor_convertido: number | null
+        }
+        Insert: {
+          canal?: string | null
+          cidade?: string | null
+          data_matricula?: string | null
+          dias_lead_para_venda?: number | null
+          email?: string | null
+          estado?: string | null
+          id?: number
+          import_batch_id?: string | null
+          imported_at?: string
+          lead_data?: string | null
+          lead_id?: number | null
+          nome?: string | null
+          raw?: Json | null
+          telefone?: string | null
+          turma?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          valor_convertido?: number | null
+        }
+        Update: {
+          canal?: string | null
+          cidade?: string | null
+          data_matricula?: string | null
+          dias_lead_para_venda?: number | null
+          email?: string | null
+          estado?: string | null
+          id?: number
+          import_batch_id?: string | null
+          imported_at?: string
+          lead_data?: string | null
+          lead_id?: number | null
+          nome?: string | null
+          raw?: Json | null
+          telefone?: string | null
+          turma?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          valor_convertido?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planilha_vendas_import_batch_id_fkey"
+            columns: ["import_batch_id"]
+            isOneToOne: false
+            referencedRelation: "planilha_imports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "planilha_vendas_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "planilha_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       produtos: {
         Row: {
           abreviacao: string
