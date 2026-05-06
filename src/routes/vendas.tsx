@@ -99,9 +99,18 @@ function Vendas() {
         .range(from, to) as any;
       q = applyVendasFilters(q, filters);
       if (debouncedBusca) q = q.or(`nome.ilike.%${debouncedBusca}%,email.ilike.%${debouncedBusca}%`);
-      if (tipoFiltro === "Com Lead") q = q.in("tipo_atribuicao", ["Existente", "Inferida"]);
-      if (tipoFiltro === "Sem Atribuicao") q = q.eq("tipo_atribuicao", "Sem Atribuicao");
-      const { data, error } = await q;
+      if (tipoFiltro === "Com Lead") q = q.in("tipo_atribuicao", ["Lead Anterior", "Lead Posterior"]);
+      if (tipoFiltro === "Sem Atribuicao") q = q.eq("tipo_atribuicao", "Sem Atribuição");
+      let q2 = supabase
+        .from("vendas_atribuidas")
+        .select("nome, email, turma, data_matricula, valor_convertido, estado, canal, tipo_atribuicao, tipo_match, match_score, match_lag_days, utm_campanha")
+        .order("data_matricula", { ascending: false })
+        .range(from, to) as any;
+      q2 = applyVendasFilters(q2, filters);
+      if (debouncedBusca) q2 = q2.or(`nome.ilike.%${debouncedBusca}%,email.ilike.%${debouncedBusca}%`);
+      if (tipoFiltro === "Com Lead") q2 = q2.in("tipo_atribuicao", ["Lead Anterior", "Lead Posterior"]);
+      if (tipoFiltro === "Sem Atribuicao") q2 = q2.eq("tipo_atribuicao", "Sem Atribuição");
+      const { data, error } = await q2;
       if (error) throw error;
       return (data ?? []) as any[];
     },
