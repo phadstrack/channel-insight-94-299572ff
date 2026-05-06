@@ -302,13 +302,22 @@ function Vendas() {
                         </span>
                       </td>
                       <td className="py-2.5 pr-4">
-                        <span
-                          className={`text-[10px] px-2 py-0.5 rounded ${
-                            TIPO_BADGE[r.tipo_atribuicao] ?? "bg-muted text-muted-foreground"
-                          }`}
-                        >
-                          {r.tipo_atribuicao === "Sem Atribuicao" ? "Sem Atribuição" : (r.tipo_atribuicao ?? "—")}
-                        </span>
+                        <div className="flex flex-col gap-0.5">
+                          <span
+                            className={`text-[10px] px-2 py-0.5 rounded inline-block w-fit ${
+                              TIPO_BADGE[r.tipo_atribuicao] ?? "bg-muted text-muted-foreground"
+                            }`}
+                          >
+                            {r.tipo_atribuicao ?? "—"}
+                          </span>
+                          {r.tipo_match && r.tipo_match !== "sem" && (
+                            <span className="text-[9px] text-muted-foreground">
+                              {r.tipo_match}
+                              {r.match_score ? ` · ${Number(r.match_score).toFixed(2)}` : ""}
+                              {r.match_lag_days != null ? ` · ${r.match_lag_days}d` : ""}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="py-2.5 pr-4 text-xs text-muted-foreground">{r.estado ?? "—"}</td>
                     </tr>
