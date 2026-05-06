@@ -17,6 +17,7 @@ import { Route as GeografiaRouteImport } from './routes/geografia'
 import { Route as GapsRouteImport } from './routes/gaps'
 import { Route as CanaisRouteImport } from './routes/canais'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminImportRouteImport } from './routes/admin.import'
 
 const VendasRoute = VendasRouteImport.update({
   id: '/vendas',
@@ -58,6 +59,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminImportRoute = AdminImportRouteImport.update({
+  id: '/admin/import',
+  path: '/admin/import',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -68,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/turmas': typeof TurmasRoute
   '/utms': typeof UtmsRoute
   '/vendas': typeof VendasRoute
+  '/admin/import': typeof AdminImportRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByTo {
   '/turmas': typeof TurmasRoute
   '/utms': typeof UtmsRoute
   '/vendas': typeof VendasRoute
+  '/admin/import': typeof AdminImportRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -89,6 +97,7 @@ export interface FileRoutesById {
   '/turmas': typeof TurmasRoute
   '/utms': typeof UtmsRoute
   '/vendas': typeof VendasRoute
+  '/admin/import': typeof AdminImportRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,6 +110,7 @@ export interface FileRouteTypes {
     | '/turmas'
     | '/utms'
     | '/vendas'
+    | '/admin/import'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -111,6 +121,7 @@ export interface FileRouteTypes {
     | '/turmas'
     | '/utms'
     | '/vendas'
+    | '/admin/import'
   id:
     | '__root__'
     | '/'
@@ -121,6 +132,7 @@ export interface FileRouteTypes {
     | '/turmas'
     | '/utms'
     | '/vendas'
+    | '/admin/import'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -132,6 +144,7 @@ export interface RootRouteChildren {
   TurmasRoute: typeof TurmasRoute
   UtmsRoute: typeof UtmsRoute
   VendasRoute: typeof VendasRoute
+  AdminImportRoute: typeof AdminImportRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -192,6 +205,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/import': {
+      id: '/admin/import'
+      path: '/admin/import'
+      fullPath: '/admin/import'
+      preLoaderRoute: typeof AdminImportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -204,6 +224,7 @@ const rootRouteChildren: RootRouteChildren = {
   TurmasRoute: TurmasRoute,
   UtmsRoute: UtmsRoute,
   VendasRoute: VendasRoute,
+  AdminImportRoute: AdminImportRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
