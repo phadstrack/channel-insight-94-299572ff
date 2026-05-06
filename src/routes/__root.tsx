@@ -3,8 +3,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { FiltersProvider } from "@/lib/filters";
+import { installServerFnAuth } from "@/integrations/supabase/server-fn-auth";
 
 import appCss from "../styles.css?url";
+
+installServerFnAuth();
 
 function NotFoundComponent() {
   return (
