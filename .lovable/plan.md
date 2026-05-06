@@ -1,67 +1,165 @@
-# Atribuição de Vendas ↔ Leads
 
-## Diagnóstico
+# Plataforma de Auditoria de Vendas & Cruzamento de Leads
 
-Estado atual no banco:
+Diagnóstico em 3 ângulos (eng. dados / cientista / analista) e proposta de reformulação para garantir **precisão, rastreabilidade e auditabilidade**.
 
-| Tabela | Linhas | Observação |
+## 1. Diagnóstico atual
+
+**Volumes:**
+- `rd_vendas`: 3.977 (80 sem email, 1.674 sem telefone, 3.325 sem utm_source, 0 ids duplicados, 0 valor zero)
+- `rd_leads`: **0** (esvaziada)
+- `planilha_leads`: 12.000
+- `sem_atribuicao`: 642 (tabela paralela, sem RLS, não usada na view)
+- `jornada_normalizada`: 3.085 (sem RLS, não consumida)
+- `meta_ads_spend` / `google_ads_spend`: 0 (esquema pronto, sem dados, sem RLS)
+- `planilha_vendas`: 0 (tabela duplicada de `rd_vendas`)
+
+**Problemas estruturais:**
+
+| # | Problema | Impacto |
 |---|---|---|
-| `rd_vendas` | 3.977 | 3.897 com email, 2.303 com telefone |
-| `rd_leads` | **0** | última importação (133k) parece ter sido limpa |
-| `planilha_leads` | 12.000 | tem `email` + `telefone` (sem nome/data) |
+| P1 | View `vendas_atribuidas` faz match só por chave normalizada — não distingue lead anterior x posterior à venda (vaza atribuição "do futuro") | Falsos positivos |
+| P2 | `tipo_atribuicao=Existente` é decidido por `utm_source` da venda, mesmo quando lead casou — mascara origem real | Métrica de canal incorreta |
+| P3 | `match_phone` não exclui telefones já casados por email (pode gerar dupla contagem em joins futuros) | Risco em agregações |
+| P4 | Sem nenhuma camada de qualidade (DQ): nada flagra emails inválidos, telefones < 10 dígitos, datas no futuro, valores negativos, duplicidade `nome+valor` | Dado entra silenciosamente |
+| P5 | Sem lineage / staging — importa direto na "tabela final"; reimport sobrepõe sem versão | Impossível auditar "de onde veio" |
+| P6 | Tabelas órfãs: `sem_atribuicao`, `jornada_normalizada`, `planilha_vendas`, `*_ads_spend` (sem RLS, sem uso) | Confusão e risco de privacidade |
+| P7 | `rd_leads` esvaziada — view degrada silenciosamente para "Sem Atribuição" | Sem alerta |
+| P8 | Front consulta `vendas_atribuidas` com `.limit(20000)` em várias páginas e agrega no client | Inconsistência entre páginas, performance |
+| P9 | Sem reconciliação entre fontes (RD x planilhas x ads) | Não dá pra auditar |
+| P10 | Dedupe atual de vendas é só por `id_venda` + `(nome, valor)` no import — não resolve casos reais (ex.: mesmo aluno, 2 parcelas, ids diferentes) | Receita potencialmente inflada |
 
-A view `vendas_atribuidas` hoje só faz `LEFT JOIN rd_leads ON lower(email)`. Com `rd_leads` vazia, toda venda cai em "Sem Atribuição" — por isso o canal não aparece em /canais.
+## 2. Arquitetura proposta (camadas em medallion)
 
-## Estratégia em 2 passos
-
-**Passo 1 — Match por email (forte):**
-para cada venda, normalizar `lower(trim(email))` e procurar lead com mesmo email em `rd_leads` ∪ `planilha_leads`. Se achar → `tipo_match = 'email'`.
-
-**Passo 2 — Fallback por telefone (apenas para vendas que ficaram sem match):**
-normalizar telefone para apenas dígitos e usar os **últimos 10 dígitos** (ignora DDI 55 e 9º dígito quando ausente em um dos lados). Match → `tipo_match = 'telefone'`.
-
-Sem match → `tipo_match = 'sem'`.
-
-## Mudanças
-
-### 1. Migração SQL
-
-- Função imutável `public.norm_email(text)` → `lower(trim(...))`.
-- Função imutável `public.norm_phone(text)` → `regexp_replace(...,'\D','','g')` truncado aos últimos 10 dígitos.
-- Índices:
-  - `rd_leads(norm_email(email))`, `rd_leads(norm_phone(telefone))`
-  - `planilha_leads(norm_email(email))`, `planilha_leads(norm_phone(telefone))`
-  - `rd_vendas(norm_email(email))`, `rd_vendas(norm_phone(telefone))`
-- Substituir a view `vendas_atribuidas` por uma versão que:
-  1. Faz `UNION ALL` de `rd_leads` + `planilha_leads` em uma CTE `leads_all` (campos comuns: email, telefone, utm_*, canal, origem_lead, data).
-  2. CTE `match_email`: `DISTINCT ON (norm_email)` mais recente por email.
-  3. CTE `match_phone`: `DISTINCT ON (norm_phone)` mais recente por telefone, **excluindo emails já presentes em match_email** (para não duplicar).
-  4. `LEFT JOIN` venda → match_email; `LEFT JOIN` venda → match_phone quando email não casou.
-  5. Nova coluna `tipo_match` (`email` | `telefone` | `sem`) e `tipo_atribuicao` ajustado:
-     - `Existente` se venda já tinha `utm_source`,
-     - `Inferida` se veio do match (email ou telefone),
-     - `Sem Atribuicao` caso contrário.
-
-### 2. UI
-
-- Em `/canais` (e KPIs gerais) o canal passa a ser preenchido pelo lead casado, sem mudança de código no front — a view continua expondo `canal`.
-- Adicionar pequeno badge na tabela de Vendas mostrando `tipo_match` (email/telefone/—) para auditoria. Arquivo: `src/routes/vendas.tsx`.
-
-## Detalhes técnicos
-
-```sql
-CREATE OR REPLACE FUNCTION public.norm_phone(p text)
-RETURNS text LANGUAGE sql IMMUTABLE AS $$
-  SELECT NULLIF(RIGHT(regexp_replace(coalesce(p,''), '\D','','g'), 10), '')
-$$;
+```text
+RAW (imutável)        → STAGING (tipado+normalizado)  → CORE (entidades)        → MARTS (views p/ UI)
+rd_vendas_raw            stg_vendas                       dim_pessoa               vendas_atribuidas
+rd_leads_raw             stg_leads                        fct_venda                kpi_diario
+planilha_leads_raw       stg_leads_planilha               fct_lead                 audit_overview
+ads_*_raw                stg_ads                          bridge_lead_venda        dq_findings
+                                                          dim_canal                reconciliacao_fontes
 ```
 
-Match por telefone exige ≥ 10 dígitos para evitar falsos positivos.
+- **RAW**: cópia fiel + `import_batch_id`, `imported_at`, `source` — nunca sobrescrita; reimport gera novo batch.
+- **STAGING**: views materializadas que aplicam `norm_email`, `norm_phone`, `norm_nome`, parsing de data/valor, e marcam linhas com `dq_flags[]`.
+- **CORE**:
+  - `dim_pessoa`: entidade canônica do contato (chaves: `email_key`, `phone_key`, `nome_key`) — clusterizada por regras determinísticas + score.
+  - `fct_lead` / `fct_venda`: granularidade fato, FK para `dim_pessoa.pessoa_id`.
+  - `bridge_lead_venda`: relação N-N com `match_method`, `match_score`, `match_lag_days`, `is_pre_sale` (lead antes da venda — única forma válida de atribuição).
+- **MARTS**: views finais para o front (mantém nomes existentes — `vendas_atribuidas` reescrita sobre o core).
 
-A view vira `SECURITY INVOKER` padrão (sem mudança de RLS — leitura permitida a authenticated em todas as tabelas envolvidas).
+## 3. Regras de matching (precisão > recall)
 
-## Fora deste escopo (próximos passos sugeridos)
+Pipeline determinístico em ordem de força, **somente leads anteriores ou ≤ 90 dias após** (configurável):
 
-- Reimportar `rd_leads` (a tabela está vazia — a view ganha muito mais matches quando ela voltar a ter os 133k registros).
-- Match por nome+telefone parcial (fuzzy) — só se o telefone puro deixar muitas vendas sem atribuição.
-- Persistir resultado em tabela materializada se a view ficar lenta (>1s).
+1. `email_key` (lower+trim, valida regex RFC simplificado)
+2. `phone_key` (últimos 10 dígitos, exige ≥ 10 dígitos válidos, descarta repetidos tipo `9999999999`)
+3. `nome_key + cidade` (slug do nome sem acento, exige nome com ≥ 2 tokens)
+4. Fallback `nome_key + estado` apenas se score ≥ 0.85
+
+Cada match grava: `match_method`, `match_score` (0–1), `match_lag_days`, `lead_data`, `venda_data`, `auditor_note`.
+
+Vendas sem match em nenhuma camada → `tipo_atribuicao='Sem Atribuição'`.
+Vendas com `utm_source` mas sem lead casado → `tipo_atribuicao='UTM Direta (sem lead)'` (novo — separado de "Sem Atribuição" para honestidade analítica).
+
+## 4. Camada de Qualidade de Dados (DQ)
+
+Tabela `dq_findings(entity, entity_id, rule, severity, details, batch_id, created_at)` populada por funções por regra:
+
+- emails inválidos / domínios suspeitos
+- telefones < 10 dígitos / repetidos
+- duplicidade suspeita (`nome+valor+data±3d` com ids diferentes)
+- vendas com `data_matricula` futura ou < 2020
+- leads com data depois da venda (no contexto de matching)
+- `valor_convertido` ≤ 0 ou > 3σ da turma
+- `id_venda` ausente ou colidindo entre batches
+
+UI: nova rota **/auditoria** com:
+- Resumo por severidade
+- Drill-down por regra → linhas afetadas
+- Botão "marcar como revisado" (grava `dq_resolutions`)
+
+## 5. Reconciliação entre fontes
+
+Nova rota **/reconciliacao** comparando:
+
+- RD Vendas vs Planilha Vendas (quando reativada)
+- Total receita por turma vs `edicoes.valor_aprovado`
+- Vendas com canal "Meta" vs `meta_ads_spend.conversions` (quando dados existirem)
+- Leads RD vs Leads Planilha (overlap, gaps, conflitos de UTM no mesmo email)
+
+Saída: tabela `reconciliacao_fontes` com `gap_count`, `gap_value`, `direction` (faltando_em_a / faltando_em_b / divergente).
+
+## 6. Backend: server functions tipadas (não mais agregação no client)
+
+Substituir `.from('vendas_atribuidas').select(...).limit(20000)` por RPCs em `src/server/analytics.functions.ts`:
+
+- `getKpis(filters)` → totais, com/sem atribuição, ticket médio, % match por método
+- `getCanais(filters)`, `getTurmas(filters)`, `getOrigem(filters)`, `getGeo(filters)`, `getProprietarios(filters)`, `getUtms(filters)`, `getPacotes(filters)`
+- `getVendasPaginated(filters, page, sort)` — paginação real
+- `getDqSummary()`, `getDqByRule(rule)`, `getReconciliacao()`
+- `getAuditTrail(venda_id)` — devolve raw original + match + DQ flags
+
+Toda agregação roda em SQL (funções `SECURITY DEFINER` com `search_path=public`), garantindo que **toda página vê o mesmo número** (hoje não vê).
+
+## 7. Limpeza & RLS
+
+- Habilitar RLS nas tabelas órfãs (`jornada_normalizada`, `meta_ads_spend`, `google_ads_spend`, `sem_atribuicao`) ou removê-las.
+- Drop de `planilha_vendas` (duplica `rd_vendas`) ou converter em RAW de outra fonte.
+- `sem_atribuicao` deixa de ser tabela física — vira view sobre `fct_venda` filtrando `tipo_atribuicao='Sem Atribuição'`.
+
+## 8. UI reformulada
+
+Novas/renomeadas rotas (sidebar reorganizada em 3 grupos):
+
+**Análise**
+- `/` Visão geral (KPIs unificados + alerta se DQ severa)
+- `/canais`, `/turmas`, `/origem`, `/utms`, `/geografia`, `/pacotes`, `/proprietarios` (consumindo RPCs)
+- `/vendas` — tabela paginada com badge de `match_method`, score e link "auditar"
+
+**Auditoria**
+- `/auditoria` — resumo DQ
+- `/auditoria/regra/$regra` — detalhe
+- `/auditoria/venda/$id` — trilha completa (RAW → staging → match → DQ)
+- `/reconciliacao` — gaps entre fontes
+
+**Admin**
+- `/admin/import` — adiciona seleção de fonte, preview de DQ antes de promover RAW→STG, histórico de batches com diff
+- `/admin/regras-match` — tunar prioridade/threshold
+- `/admin/qualidade` — habilitar/desabilitar regras DQ
+
+## 9. Migrações SQL (alto nível)
+
+1. Criar funções `norm_nome`, `is_valid_email`, `is_valid_phone`.
+2. Criar `dim_pessoa`, `fct_venda`, `fct_lead`, `bridge_lead_venda`, `dq_findings`, `dq_resolutions`, `reconciliacao_fontes`.
+3. Procedure `rebuild_core(batch_id uuid)` que: faz staging, popula dim/fct, executa matching, grava DQ. Idempotente por batch.
+4. Reescrever `vendas_atribuidas` sobre o core (mantém contrato pra UI atual).
+5. RLS authenticated-read em tudo no `public`; admin-write.
+6. Habilitar `pg_cron` (se disponível) p/ rodar `rebuild_core` após cada import.
+
+## 10. Plano de execução (sequência)
+
+1. **Fundação SQL**: migrations 1-3 acima + `rebuild_core` rodando uma vez sobre dados atuais.
+2. **Reescrever `vendas_atribuidas`** sobre o core, com regra "lead anterior à venda".
+3. **RPCs analíticas** + refatorar todas as rotas analíticas para consumi-las.
+4. **Página /auditoria** com DQ completo.
+5. **Página /reconciliacao** + reativar `meta_ads_spend` / `google_ads_spend` no import.
+6. **Refatorar /admin/import**: RAW + preview DQ + histórico/diff de batches.
+7. Limpeza: RLS nas órfãs, drop `planilha_vendas`, `sem_atribuicao` vira view.
+8. Reimportar `rd_leads` (orientar usuário) e validar reconciliação.
+
+## Detalhes técnicos chave
+
+- **Matching só conta lead anterior à venda** (`lead.data_criacao <= venda.data_matricula + INTERVAL '1 day'`) — corrige P1.
+- **Hierarquia honesta de atribuição**: `Lead Anterior` (forte) > `Lead Posterior <90d` (fraco, marcado) > `UTM Direta` (sem lead) > `Sem Atribuição`.
+- **Match score**: 1.0 (email) > 0.9 (telefone) > 0.75 (nome+cidade) > 0.6 (nome+estado). Threshold mínimo configurável.
+- **`fct_venda` carrega `valor_convertido_brl`** pré-convertido (hoje vem do RD), e mantém `valor` original + moeda — auditável.
+- **Toda rota analítica retorna `as_of` (timestamp do último rebuild)** exibido no header — usuário sempre sabe a versão dos dados.
+- **`audit_trail` por venda** mostra: RAW JSON, regras DQ acionadas, qual lead casou, qual foi o método, score, lag em dias.
+
+## Fora deste escopo (próximos)
+
+- Fuzzy matching ML-based (Levenshtein/Jaro) — só se determinístico + nome+cidade não cobrir.
+- Materialização incremental (hoje rebuild é full — ok até ~100k linhas).
+- Conector direto com API RD Station (substitui CSV).
+
