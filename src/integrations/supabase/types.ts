@@ -1023,7 +1023,7 @@ export type Database = {
           id: number | null
           id_venda: string | null
           lead_data_criacao: string | null
-          lead_id: number | null
+          lead_id: string | null
           nome: string | null
           origem_lead: string | null
           pacote: string | null
@@ -1031,6 +1031,7 @@ export type Database = {
           qtd_pagantes: number | null
           qtd_parcelas: number | null
           tipo_atribuicao: string | null
+          tipo_match: string | null
           turma: string | null
           ultima_origem_lead: string | null
           utm_campanha: string | null
@@ -1068,6 +1069,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      norm_email: { Args: { p: string }; Returns: string }
+      norm_phone: { Args: { p: string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "user"
