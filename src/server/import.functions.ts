@@ -109,7 +109,17 @@ export const importSheet = createServerFn({ method: "POST" })
           };
         }).filter((r) => r.id_lead_rd || r.email);
 
-        for (let i = 0; i < records.length; i += CHUNK) {
+        // Deduplica por id_lead_rd (mantém última ocorrência) — evita
+        // "ON CONFLICT DO UPDATE cannot affect row a second time"
+        const seenL = new Map<string, any>();
+        const dedupL: any[] = [];
+        for (const r of records) {
+          if (r.id_lead_rd) seenL.set(r.id_lead_rd, r);
+          else dedupL.push(r);
+        }
+        const recordsDedup = [...seenL.values(), ...dedupL];
+
+        for (let i = 0; i < recordsDedup.length; i += CHUNK) {
           const chunk = records.slice(i, i + CHUNK);
           const withId = chunk.filter((r) => r.id_lead_rd);
           const noId   = chunk.filter((r) => !r.id_lead_rd);
