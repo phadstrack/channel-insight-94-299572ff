@@ -186,6 +186,15 @@ export const importSheet = createServerFn({ method: "POST" })
           };
         }).filter((r) => r.id_venda || r.email);
 
+        // Deduplica por id_venda (mantém última ocorrência)
+        const seenV = new Map<string, any>();
+        const dedupV: any[] = [];
+        for (const r of records) {
+          if (r.id_venda) seenV.set(r.id_venda, r);
+          else dedupV.push(r);
+        }
+        const recordsDedup: any[] = [...seenV.values(), ...dedupV];
+
         for (let i = 0; i < recordsDedup.length; i += CHUNK) {
           const chunk = recordsDedup.slice(i, i + CHUNK);
           const withId = chunk.filter((r) => r.id_venda);
