@@ -6,7 +6,7 @@ import { useFilters, applyVendasFilters } from "@/lib/filters";
 import { PageHeader, Card } from "@/components/dashboard/PageHeader";
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import { GlobalFilters } from "@/components/dashboard/GlobalFilters";
-import { fmtBRL, fmtBRLFull, fmtNum, fmtPct, channelColor } from "@/lib/format";
+import { fmtBRL, fmtBRLFull, fmtNum, fmtPct, channelColor, CANAIS_LIST } from "@/lib/format";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 import { cn } from "@/lib/utils";
 
