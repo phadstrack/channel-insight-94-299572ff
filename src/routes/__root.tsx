@@ -1,9 +1,11 @@
-import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
+import { Outlet, Link, createRootRoute, HeadContent, Scripts, useLocation, useNavigate } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { FiltersProvider } from "@/lib/filters";
 import { installServerFnAuth } from "@/integrations/supabase/server-fn-auth";
+import { AuthProvider, useAuth } from "@/lib/auth-context";
+import { Toaster } from "@/components/ui/sonner";
 
 import appCss from "../styles.css?url";
 
@@ -72,14 +74,42 @@ function RootComponent() {
   }));
   return (
     <QueryClientProvider client={qc}>
-      <FiltersProvider>
-        <div className="min-h-screen">
-          <Sidebar />
-          <main className="ml-60 px-8 py-6">
-            <Outlet />
-          </main>
-        </div>
-      </FiltersProvider>
+      <AuthProvider>
+        <FiltersProvider>
+          <AuthGate />
+          <Toaster />
+        </FiltersProvider>
+      </AuthProvider>
     </QueryClientProvider>
+  );
+}
+
+function AuthGate() {
+  const { session, loading } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isLogin = location.pathname === "/login";
+
+  useEffect(() => {
+    if (!loading && !session && !isLogin) {
+      navigate({ to: "/login" });
+    }
+  }, [loading, session, isLogin, navigate]);
+
+  if (isLogin) return <Outlet />;
+  if (loading || !session) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">
+        Carregando...
+      </div>
+    );
+  }
+  return (
+    <div className="min-h-screen">
+      <Sidebar />
+      <main className="ml-60 px-8 py-6">
+        <Outlet />
+      </main>
+    </div>
   );
 }
