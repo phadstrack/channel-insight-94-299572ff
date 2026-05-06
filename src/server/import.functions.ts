@@ -186,8 +186,8 @@ export const importSheet = createServerFn({ method: "POST" })
           };
         }).filter((r) => r.id_venda || r.email);
 
-        for (let i = 0; i < records.length; i += CHUNK) {
-          const chunk = records.slice(i, i + CHUNK);
+        for (let i = 0; i < recordsDedup.length; i += CHUNK) {
+          const chunk = recordsDedup.slice(i, i + CHUNK);
           const withId = chunk.filter((r) => r.id_venda);
           const noId   = chunk.filter((r) => !r.id_venda);
           if (withId.length) {
