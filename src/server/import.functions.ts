@@ -7,7 +7,10 @@ import {
   buildHeaderMap,
   fetchCsvRows,
   parseDate,
+  parseTimestamp,
   parseNumber,
+  parseInt0,
+  titleCase,
   pick,
 } from "./sheets.server";
 import { deriveCanal } from "@/lib/canal";
@@ -17,35 +20,25 @@ const PreviewInput = z.object({
   gid: z.string().optional(),
 });
 
+async function assertAdmin(ctx: any) {
+  const { data: roles, error } = await ctx.supabase
+    .from("user_roles").select("role").eq("user_id", ctx.userId);
+  if (error) throw new Error("Falha ao verificar permissões: " + error.message);
+  if (!roles?.some((r: any) => r.role === "admin")) {
+    throw new Error("Apenas administradores podem importar planilhas.");
+  }
+}
+
 export const previewSheet = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => PreviewInput.parse(d))
   .handler(async ({ data, context }) => {
-    try {
-      const { data: roles, error: rolesErr } = await context.supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", context.userId);
-      if (rolesErr) throw new Error("Falha ao verificar permissões: " + rolesErr.message);
-      if (!roles?.some((r) => r.role === "admin")) {
-        throw new Error("Apenas administradores podem importar planilhas.");
-      }
-
-      const csvUrl = buildCsvUrl(data.sheetUrl, data.gid);
-      const rows = await fetchCsvRows(csvUrl);
-      const headers = rows.length && rows[0] ? Object.keys(rows[0]) : [];
-      const headerMap = buildHeaderMap(headers);
-      return {
-        headers,
-        headerMap,
-        sample: rows.slice(0, 10),
-        total: rows.length,
-      };
-    } catch (err: any) {
-      console.error("[previewSheet] error:", err);
-      // Retorna como dado para evitar h3 swallow → 500 genérico
-      throw new Error(err?.message ?? String(err));
-    }
+    await assertAdmin(context);
+    const csvUrl = buildCsvUrl(data.sheetUrl, data.gid);
+    const rows = await fetchCsvRows(csvUrl);
+    const headers = rows.length && rows[0] ? Object.keys(rows[0]) : [];
+    const headerMap = buildHeaderMap(headers);
+    return { headers, headerMap, sample: rows.slice(0, 10), total: rows.length };
   });
 
 const ImportInput = z.object({
@@ -54,19 +47,14 @@ const ImportInput = z.object({
   aba: z.enum(["leads", "vendas"]),
 });
 
+const CHUNK = 200;
+
 export const importSheet = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => ImportInput.parse(d))
   .handler(async ({ data, context }) => {
-    const { data: roles } = await context.supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", context.userId);
-    if (!roles?.some((r) => r.role === "admin")) {
-      throw new Error("Apenas administradores podem importar planilhas.");
-    }
+    await assertAdmin(context);
 
-    // batch
     const { data: batch, error: batchErr } = await context.supabase
       .from("planilha_imports")
       .insert({
@@ -75,10 +63,13 @@ export const importSheet = createServerFn({ method: "POST" })
         status: "running",
         created_by: context.userId,
       })
-      .select("id")
-      .single();
+      .select("id").single();
     if (batchErr || !batch) throw new Error("Falha ao criar batch: " + batchErr?.message);
     const batchId = batch.id;
+
+    let inseridas = 0;
+    let finalStatus: "success" | "error" = "success";
+    let finalErro: string | null = null;
 
     try {
       const csvUrl = buildCsvUrl(data.sheetUrl, data.gid);
@@ -86,126 +77,132 @@ export const importSheet = createServerFn({ method: "POST" })
       if (!rows.length) throw new Error("Planilha vazia ou sem cabeçalho.");
       const headerMap = buildHeaderMap(Object.keys(rows[0]));
 
-      let inseridas = 0;
-
       if (data.aba === "leads") {
-        const records = rows
-          .map((r) => {
-            const utm_source = pick(r, headerMap, "utm_source");
-            const utm_medium = pick(r, headerMap, "utm_medium");
-            const origem_lead = pick(r, headerMap, "origem_lead");
-            return {
-              email: pick(r, headerMap, "email"),
-              telefone: pick(r, headerMap, "telefone"),
-              nome: pick(r, headerMap, "nome"),
-              data_lead: parseDate(pick(r, headerMap, "data_lead")),
-              utm_source,
-              utm_medium,
-              utm_campaign: pick(r, headerMap, "utm_campaign"),
-              utm_content: pick(r, headerMap, "utm_content"),
-              utm_term: pick(r, headerMap, "utm_term"),
-              origem_lead,
-              canal: deriveCanal({ utm_source, utm_medium, origem_lead }),
-              raw: r as any,
-              import_batch_id: batchId,
-            };
-          })
-          .filter((r) => r.email || r.telefone);
+        const records = rows.map((r) => {
+          const utm_origem = pick(r, headerMap, "utm_origem");
+          const utm_midia  = pick(r, headerMap, "utm_midia");
+          const origem_lead = pick(r, headerMap, "origem_lead");
+          return {
+            id_lead_rd: pick(r, headerMap, "id_lead_rd"),
+            email: pick(r, headerMap, "email"),
+            nome: pick(r, headerMap, "nome"),
+            telefone: pick(r, headerMap, "telefone"),
+            proprietario: pick(r, headerMap, "proprietario"),
+            status_lead: pick(r, headerMap, "status_lead"),
+            unidade_rd: pick(r, headerMap, "unidade_rd"),
+            origem_lead,
+            url_cadastro: pick(r, headerMap, "url_cadastro"),
+            data_criacao: parseTimestamp(pick(r, headerMap, "data_lead_criacao")),
+            utm_origem,
+            utm_midia,
+            utm_campanha: pick(r, headerMap, "utm_campanha"),
+            utm_conteudo: pick(r, headerMap, "utm_conteudo"),
+            utm_termo: pick(r, headerMap, "utm_termo"),
+            cidade: titleCase(pick(r, headerMap, "cidade")),
+            estado: pick(r, headerMap, "estado"),
+            objecoes: pick(r, headerMap, "objecoes"),
+            canal: deriveCanal({
+              utm_source: utm_origem, utm_medium: utm_midia, origem_lead,
+            }),
+            raw: r as any,
+            import_batch_id: batchId,
+          };
+        }).filter((r) => r.id_lead_rd || r.email);
 
-        // chunks de 500
-        for (let i = 0; i < records.length; i += 500) {
-          const chunk = records.slice(i, i + 500);
-          const { error } = await context.supabase
-            .from("planilha_leads")
-            .upsert(chunk as any, {
-              onConflict: "email,data_lead,utm_source,utm_campaign",
-              ignoreDuplicates: false,
-            });
-          if (error) {
-            // fallback insert sem onConflict (índice expression-based pode não casar com upsert)
-            const { error: e2 } = await context.supabase.from("planilha_leads").insert(chunk as any);
-            if (e2 && !e2.message.includes("duplicate")) throw e2;
+        for (let i = 0; i < records.length; i += CHUNK) {
+          const chunk = records.slice(i, i + CHUNK);
+          const withId = chunk.filter((r) => r.id_lead_rd);
+          const noId   = chunk.filter((r) => !r.id_lead_rd);
+          if (withId.length) {
+            const { error } = await context.supabase
+              .from("rd_leads").upsert(withId as any, { onConflict: "id_lead_rd" });
+            if (error) throw error;
+          }
+          if (noId.length) {
+            const { error } = await context.supabase.from("rd_leads").insert(noId as any);
+            if (error) throw error;
           }
           inseridas += chunk.length;
+          await context.supabase.from("planilha_imports")
+            .update({ linhas_inseridas: inseridas }).eq("id", batchId);
         }
       } else {
-        const records = rows
-          .map((r) => {
-            const utm_source = pick(r, headerMap, "utm_source");
-            const utm_medium = pick(r, headerMap, "utm_medium");
-            return {
-              email: pick(r, headerMap, "email"),
-              telefone: pick(r, headerMap, "telefone"),
-              nome: pick(r, headerMap, "nome"),
-              data_matricula: parseDate(pick(r, headerMap, "data_matricula")),
-              valor_convertido: parseNumber(pick(r, headerMap, "valor_convertido")),
-              turma: pick(r, headerMap, "turma"),
-              cidade: pick(r, headerMap, "cidade"),
-              estado: pick(r, headerMap, "estado"),
-              utm_source,
-              utm_medium,
-              utm_campaign: pick(r, headerMap, "utm_campaign"),
-              utm_content: pick(r, headerMap, "utm_content"),
-              utm_term: pick(r, headerMap, "utm_term"),
-              canal: deriveCanal({ utm_source, utm_medium }),
-              raw: r as any,
-              import_batch_id: batchId,
-            };
-          })
-          .filter((r) => r.email || r.telefone);
+        const records = rows.map((r) => {
+          const utm_source = pick(r, headerMap, "utm_origem");
+          const utm_medium = pick(r, headerMap, "utm_midia");
+          const origem_lead = pick(r, headerMap, "origem_lead");
+          return {
+            id_venda: pick(r, headerMap, "id_venda"),
+            email: pick(r, headerMap, "email"),
+            nome_cliente: pick(r, headerMap, "nome"),
+            nome_venda: pick(r, headerMap, "nome_venda"),
+            proprietario: pick(r, headerMap, "proprietario"),
+            lead_origem: pick(r, headerMap, "lead_origem"),
+            curso: pick(r, headerMap, "curso"),
+            codigo_curso: pick(r, headerMap, "codigo_curso"),
+            unidade_geradora: pick(r, headerMap, "unidade_geradora"),
+            codigo_unidade: pick(r, headerMap, "codigo_unidade"),
+            turma: pick(r, headerMap, "turma"),
+            pacote: pick(r, headerMap, "pacote"),
+            promocao: pick(r, headerMap, "promocao"),
+            canal_venda: pick(r, headerMap, "canal_venda"),
+            checkout: pick(r, headerMap, "checkout"),
+            fase: pick(r, headerMap, "fase"),
+            valor: parseNumber(pick(r, headerMap, "valor")),
+            valor_moeda: pick(r, headerMap, "valor_moeda"),
+            valor_convertido: parseNumber(pick(r, headerMap, "valor_convertido")),
+            qtd_pagantes: parseInt0(pick(r, headerMap, "qtd_pagantes")),
+            qtd_parcelas: parseInt0(pick(r, headerMap, "qtd_parcelas")),
+            estado: pick(r, headerMap, "estado"),
+            cidade: titleCase(pick(r, headerMap, "cidade")),
+            sexo: pick(r, headerMap, "sexo"),
+            data_nascimento: parseDate(pick(r, headerMap, "data_nascimento")),
+            mes_venda: pick(r, headerMap, "mes_venda"),
+            data_criacao: parseTimestamp(pick(r, headerMap, "data_venda_criacao")),
+            data_aprovacao: parseTimestamp(pick(r, headerMap, "data_aprovacao")),
+            data_matricula: parseTimestamp(pick(r, headerMap, "data_matricula")),
+            telefone: pick(r, headerMap, "telefone"),
+            venda_pai: pick(r, headerMap, "venda_pai"),
+            utm_source,
+            utm_medium,
+            utm_campaign: pick(r, headerMap, "utm_campanha"),
+            utm_content: pick(r, headerMap, "utm_conteudo"),
+            utm_term: pick(r, headerMap, "utm_termo"),
+            utm_gclid: pick(r, headerMap, "utm_gclid"),
+            origem_lead,
+            ultima_origem_lead: pick(r, headerMap, "ultima_origem_lead"),
+            raw: r as any,
+            import_batch_id: batchId,
+          };
+        }).filter((r) => r.id_venda || r.email);
 
-        for (let i = 0; i < records.length; i += 500) {
-          const chunk = records.slice(i, i + 500);
-          const { error } = await context.supabase.from("planilha_vendas").insert(chunk as any);
-          if (error && !error.message.includes("duplicate")) throw error;
-          inseridas += chunk.length;
-        }
-
-        // Atribuição last-touch: para cada venda recém-importada, buscar lead mais recente do mesmo email
-        const { data: vendasBatch } = await context.supabase
-          .from("planilha_vendas")
-          .select("id, email, data_matricula")
-          .eq("import_batch_id", batchId);
-
-        if (vendasBatch?.length) {
-          for (const v of vendasBatch) {
-            if (!v.email || !v.data_matricula) continue;
-            const { data: lead } = await context.supabase
-              .from("planilha_leads")
-              .select("id, data_lead")
-              .ilike("email", v.email)
-              .lte("data_lead", v.data_matricula)
-              .order("data_lead", { ascending: false })
-              .limit(1)
-              .maybeSingle();
-            if (lead) {
-              const dias =
-                lead.data_lead
-                  ? Math.floor(
-                      (new Date(v.data_matricula).getTime() - new Date(lead.data_lead).getTime()) /
-                        86400000,
-                    )
-                  : null;
-              await context.supabase
-                .from("planilha_vendas")
-                .update({ lead_id: lead.id, lead_data: lead.data_lead, dias_lead_para_venda: dias })
-                .eq("id", v.id);
-            }
+        for (let i = 0; i < records.length; i += CHUNK) {
+          const chunk = records.slice(i, i + CHUNK);
+          const withId = chunk.filter((r) => r.id_venda);
+          const noId   = chunk.filter((r) => !r.id_venda);
+          if (withId.length) {
+            const { error } = await context.supabase
+              .from("rd_vendas").upsert(withId as any, { onConflict: "id_venda" });
+            if (error) throw error;
           }
+          if (noId.length) {
+            const { error } = await context.supabase.from("rd_vendas").insert(noId as any);
+            if (error) throw error;
+          }
+          inseridas += chunk.length;
+          await context.supabase.from("planilha_imports")
+            .update({ linhas_inseridas: inseridas }).eq("id", batchId);
         }
       }
-
-      await context.supabase
-        .from("planilha_imports")
-        .update({ status: "success", linhas_inseridas: inseridas })
-        .eq("id", batchId);
-
-      return { ok: true, batchId, inseridas };
     } catch (err: any) {
-      await context.supabase
-        .from("planilha_imports")
-        .update({ status: "error", erro: err?.message ?? String(err) })
+      finalStatus = "error";
+      finalErro = err?.message ?? String(err);
+    } finally {
+      await context.supabase.from("planilha_imports")
+        .update({ status: finalStatus, linhas_inseridas: inseridas, erro: finalErro })
         .eq("id", batchId);
-      throw err;
     }
+
+    if (finalStatus === "error") throw new Error(finalErro ?? "Erro desconhecido");
+    return { ok: true, batchId, inseridas };
   });
