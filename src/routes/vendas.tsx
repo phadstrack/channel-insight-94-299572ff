@@ -92,15 +92,6 @@ function Vendas() {
   const { data: pageData, isLoading: loadingPage } = useQuery({
     queryKey: ["vendas-page", filters, tipoFiltro, debouncedBusca, pagina],
     queryFn: async () => {
-      let q = supabase
-        .from("vendas_atribuidas")
-        .select("nome, email, turma, data_matricula, valor_convertido, estado, canal, tipo_atribuicao, utm_campanha")
-        .order("data_matricula", { ascending: false })
-        .range(from, to) as any;
-      q = applyVendasFilters(q, filters);
-      if (debouncedBusca) q = q.or(`nome.ilike.%${debouncedBusca}%,email.ilike.%${debouncedBusca}%`);
-      if (tipoFiltro === "Com Lead") q = q.in("tipo_atribuicao", ["Lead Anterior", "Lead Posterior"]);
-      if (tipoFiltro === "Sem Atribuicao") q = q.eq("tipo_atribuicao", "Sem Atribuição");
       let q2 = supabase
         .from("vendas_atribuidas")
         .select("nome, email, turma, data_matricula, valor_convertido, estado, canal, tipo_atribuicao, tipo_match, match_score, match_lag_days, utm_campanha")
