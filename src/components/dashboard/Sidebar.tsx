@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { LayoutDashboard, Radio, GraduationCap, Route as RouteIcon, AlertTriangle, Tag, MapPin, ShoppingCart, Upload } from "lucide-react";
+import { LayoutDashboard, Radio, GraduationCap, Route as RouteIcon, AlertTriangle, Tag, MapPin, ShoppingCart, Upload, User } from "lucide-react";
 
 const links = [
   { to: "/", label: "Visão Geral", icon: LayoutDashboard },
@@ -11,6 +11,7 @@ const links = [
   { to: "/geografia", label: "Geografia", icon: MapPin },
   { to: "/gaps", label: "Gaps de Atribuição", icon: AlertTriangle },
   { to: "/admin/import", label: "Importar planilha", icon: Upload },
+  { to: "/conta", label: "Minha conta", icon: User },
 ] as const;
 
 export function Sidebar() {
