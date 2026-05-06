@@ -1444,6 +1444,15 @@ export type Database = {
       }
     }
     Functions: {
+      derive_canal: {
+        Args: {
+          p_origem: string
+          p_ultima_origem?: string
+          p_utm_medium: string
+          p_utm_source: string
+        }
+        Returns: string
+      }
       get_vendas_agg: {
         Args: {
           p_canais?: string[]

@@ -24,14 +24,16 @@ export const fmtDateBR = (d: string | Date | null | undefined) => {
 };
 
 export const CHANNEL_COLORS: Record<string, string> = {
-  "Meta/Instagram": "#6366f1",
-  Google: "#8b5cf6",
-  Organico: "#a78bfa",
-  "Lead Trafego": "#c4b5fd",
-  "X (Twitter)": "#ddd6fe",
-  "Sem UTM": "#374151",
-  "Sem Lead": "#4b5563",
+  "Mídia": "#6366f1",
+  CRM: "#10b981",
+  YouTube: "#ef4444",
+  Redes: "#f59e0b",
+  "Orgânicos": "#22c55e",
+  Outros: "#64748b",
+  "Sem Atribuição": "#374151",
 };
+
+export const CANAIS_LIST = ["Mídia", "CRM", "YouTube", "Redes", "Orgânicos", "Outros", "Sem Atribuição"] as const;
 
 export const channelColor = (c: string) => CHANNEL_COLORS[c] ?? "#6b7280";
 

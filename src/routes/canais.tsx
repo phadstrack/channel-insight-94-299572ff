@@ -6,7 +6,7 @@ import { useFilters, applyVendasFilters } from "@/lib/filters";
 import { PageHeader, Card } from "@/components/dashboard/PageHeader";
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import { GlobalFilters } from "@/components/dashboard/GlobalFilters";
-import { fmtBRL, fmtBRLFull, fmtNum, fmtPct, channelColor } from "@/lib/format";
+import { fmtBRL, fmtBRLFull, fmtNum, fmtPct, channelColor, CANAIS_LIST } from "@/lib/format";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 import { cn } from "@/lib/utils";
 
@@ -20,11 +20,11 @@ export const Route = createFileRoute("/canais")({
   component: Canais,
 });
 
-const CHANNELS = ["Todos", "Meta/Instagram", "Google", "Organico", "Lead Trafego", "X (Twitter)"];
+const CHANNELS = ["Todos", ...CANAIS_LIST];
 
 function Canais() {
   const { filters } = useFilters();
-  const [canal, setCanal] = useState<string>("Meta/Instagram");
+  const [canal, setCanal] = useState<string>("Mídia");
 
   const { data: rows, isLoading } = useQuery({
     queryKey: ["canais-detail", canal, filters],
