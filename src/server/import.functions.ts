@@ -21,25 +21,31 @@ export const previewSheet = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => PreviewInput.parse(d))
   .handler(async ({ data, context }) => {
-    // Só admin pode rodar
-    const { data: roles } = await context.supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", context.userId);
-    if (!roles?.some((r) => r.role === "admin")) {
-      throw new Error("Apenas administradores podem importar planilhas.");
-    }
+    try {
+      const { data: roles, error: rolesErr } = await context.supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", context.userId);
+      if (rolesErr) throw new Error("Falha ao verificar permissões: " + rolesErr.message);
+      if (!roles?.some((r) => r.role === "admin")) {
+        throw new Error("Apenas administradores podem importar planilhas.");
+      }
 
-    const csvUrl = buildCsvUrl(data.sheetUrl, data.gid);
-    const rows = await fetchCsvRows(csvUrl);
-    const headers = rows[0] ? Object.keys(rows[0]) : [];
-    const headerMap = buildHeaderMap(headers);
-    return {
-      headers,
-      headerMap,
-      sample: rows.slice(0, 10),
-      total: rows.length,
-    };
+      const csvUrl = buildCsvUrl(data.sheetUrl, data.gid);
+      const rows = await fetchCsvRows(csvUrl);
+      const headers = rows.length && rows[0] ? Object.keys(rows[0]) : [];
+      const headerMap = buildHeaderMap(headers);
+      return {
+        headers,
+        headerMap,
+        sample: rows.slice(0, 10),
+        total: rows.length,
+      };
+    } catch (err: any) {
+      console.error("[previewSheet] error:", err);
+      // Retorna como dado para evitar h3 swallow → 500 genérico
+      throw new Error(err?.message ?? String(err));
+    }
   });
 
 const ImportInput = z.object({
