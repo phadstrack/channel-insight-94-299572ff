@@ -67,7 +67,7 @@ function Overview() {
   const tipoMap: Record<string, { vendas: number; receita: number }> = {};
   const canalMap: Record<string, { vendas: number; receita: number; tipo: string }> = {};
   for (const r of rows) {
-    const t = r.tipo_atribuicao || "Sem Atribuicao";
+    const t = r.tipo_atribuicao || "Sem Atribuição";
     tipoMap[t] = tipoMap[t] || { vendas: 0, receita: 0 };
     tipoMap[t].vendas += 1;
     tipoMap[t].receita += Number(r.valor_convertido ?? 0);
@@ -101,9 +101,10 @@ function Overview() {
   }));
 
   const tipoColors: Record<string, string> = {
-    Existente: "#4ade80",
-    Inferida: "#f59e0b",
-    "Sem Atribuicao": "#f87171",
+    "Lead Anterior": "#4ade80",
+    "Lead Posterior": "#f59e0b",
+    "UTM Direta": "#818cf8",
+    "Sem Atribuição": "#f87171",
   };
 
   const monthlyTrend = useMemo(() => {
