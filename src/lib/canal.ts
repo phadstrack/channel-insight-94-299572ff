@@ -1,75 +1,42 @@
-// Derivação de canal a partir de utm_source / utm_medium / origem_lead
-// Padrão novo (>= 01/05/2026): utm_source no formato mkt_<canal>
-// Padrão legado: heurísticas por substring
+// Nova taxonomia de canais (alinhada ao SQL public.derive_canal):
+// - Mídia: tráfego pago (Meta, Google, TikTok, ads em geral, LP/VSL/[FB][GO])
+// - CRM: e-mail e WhatsApp (mailchimp, rdstation, sz chat)
+// - YouTube: tudo relacionado a YouTube
+// - Redes: redes sociais, Social Seller / SS, indicações, stand
+// - Orgânicos: utm_medium organic / [ORG] / SEO / site
+// - Outros: tem origem mas não classifica
+// - Sem Atribuição: sem nada
 
 export type CanalInput = {
   utm_source?: string | null;
   utm_medium?: string | null;
   origem_lead?: string | null;
+  ultima_origem_lead?: string | null;
 };
 
-const CANAIS_NORMALIZADOS: Record<string, string> = {
-  meta: "Meta/Instagram",
-  facebook: "Meta/Instagram",
-  instagram: "Meta/Instagram",
-  fb: "Meta/Instagram",
-  ig: "Meta/Instagram",
-  google: "Google",
-  gads: "Google",
-  adwords: "Google",
-  youtube: "YouTube",
-  yt: "YouTube",
-  tiktok: "TikTok",
-  whatsapp: "WhatsApp",
-  wpp: "WhatsApp",
-  email: "E-mail",
-  organico: "Orgânico",
-  organic: "Orgânico",
-  seo: "Orgânico",
-  direct: "Direto",
-  direto: "Direto",
-  x: "X (Twitter)",
-  twitter: "X (Twitter)",
-  linkedin: "LinkedIn",
-  bing: "Bing",
-};
-
-function norm(s?: string | null) {
-  return (s ?? "").toString().trim().toLowerCase();
-}
+const norm = (s?: string | null) => (s ?? "").toString().toLowerCase();
 
 export function deriveCanal(input: CanalInput): string {
-  const src = norm(input.utm_source);
-  const med = norm(input.utm_medium);
-  const orig = norm(input.origem_lead);
+  const s = norm(input.utm_source);
+  const m = norm(input.utm_medium);
+  const o = norm(input.origem_lead);
+  const u = norm(input.ultima_origem_lead);
+  const hay = `${s} ${m} ${o} ${u}`;
 
-  // 1. Padrão novo: mkt_<canal>
-  const mkt = src.match(/^mkt[_\-\s]+(.+)$/);
-  if (mkt) {
-    const key = mkt[1].replace(/[_\-\s]+/g, "");
-    if (CANAIS_NORMALIZADOS[key]) return CANAIS_NORMALIZADOS[key];
-    return key.charAt(0).toUpperCase() + key.slice(1);
-  }
+  if (/(youtube|\[yt\]|\byt\b|y_tube)/.test(hay)) return "YouTube";
+  if (/(email|e-mail|mailchimp|rdstation|rd_email|whats|wpp|whatsapp|sz chat|sz_chat|szchat|\bcrm\b)/.test(hay))
+    return "CRM";
+  if (/(social seller|social_seller|\bss\b|ss mcis|ss_mcis|stand cis|indica|referral|referência|aluno cis)/.test(hay))
+    return "Redes";
+  if (/(organic|organico|orgânico|seo)/.test(m) || /(organic|organico|seo|site)/.test(s) || /(\[org\]|\borg\b|orgânico|organico)/.test(hay))
+    return "Orgânicos";
+  if (
+    /(ads|cpc|paid|trafego|tráfego|cpm|display|video)/.test(m) ||
+    /(meta|facebook|instagram|\bfb\b|\big\b|google|gads|adwords|tiktok|bing|linkedin|twitter|\bx\b|ads_|mkt_|google_search)/.test(s) ||
+    /(\[fb\]|\[go\]|\[cm\]|tráfego|trafego|form - meta|meta lead ads|google_search|ads_gg|ads_fb|ads_meta|\[lp\]|\[vsl\]|\[pgven\]|\[ck\])/.test(hay)
+  )
+    return "Mídia";
 
-  // 2. Match direto na utm_source normalizada
-  const srcKey = src.replace(/[_\-\s]+/g, "");
-  if (CANAIS_NORMALIZADOS[srcKey]) return CANAIS_NORMALIZADOS[srcKey];
-
-  // 3. Heurística por substring (legado)
-  const haystack = `${src} ${med} ${orig}`;
-  if (/face|insta|meta|\bfb\b|\big\b/.test(haystack)) return "Meta/Instagram";
-  if (/google|gads|adwords|gdn/.test(haystack)) return "Google";
-  if (/youtube|\byt\b/.test(haystack)) return "YouTube";
-  if (/tiktok/.test(haystack)) return "TikTok";
-  if (/whats|wpp/.test(haystack)) return "WhatsApp";
-  if (/\bemail\b|mailchimp|rdstation/.test(haystack)) return "E-mail";
-  if (/organ|seo/.test(haystack)) return "Orgânico";
-  if (/direct|direto/.test(haystack)) return "Direto";
-  if (/linkedin/.test(haystack)) return "LinkedIn";
-  if (/twitter|\bx\b/.test(haystack)) return "X (Twitter)";
-  if (/bing/.test(haystack)) return "Bing";
-  if (/indica|referral|referência/.test(haystack)) return "Indicação";
-
-  if (orig) return "Outros (com lead)";
+  if (o.length > 0 || u.length > 0 || s.length > 0) return "Outros";
   return "Sem Atribuição";
 }
