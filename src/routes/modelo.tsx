@@ -5,7 +5,8 @@ import { PageHeader, Card } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { Play, Download, Database, Key, Hash, Type, Calendar, FileText } from "lucide-react";
+import { Play, Download, Database, Key, Hash, Type, Calendar, FileText, ZoomIn, ZoomOut, Maximize2, Move } from "lucide-react";
+import { useRef } from "react";
 import { fmtNum } from "@/lib/format";
 
 export const Route = createFileRoute("/modelo")({
