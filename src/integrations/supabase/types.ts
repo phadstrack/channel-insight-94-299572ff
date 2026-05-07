@@ -1416,14 +1416,21 @@ export type Database = {
           email: string | null
           estado: string | null
           fase: string | null
+          fonte_atribuicao: string | null
           id: string | null
           id_venda: string | null
           lead_data_criacao: string | null
           lead_id: string | null
+          lead_utm_campaign: string | null
+          lead_utm_content: string | null
+          lead_utm_medium: string | null
+          lead_utm_source: string | null
           match_lag_days: number | null
           match_score: number | null
           nome: string | null
           origem_lead: string | null
+          origem_principal: string | null
+          origem_secundaria: string | null
           pacote: string | null
           proprietario: string | null
           qtd_pagantes: number | null
@@ -1453,6 +1460,11 @@ export type Database = {
         }
         Returns: string
       }
+      derive_canal_v2: {
+        Args: { p_origem: string; p_ultima_origem: string }
+        Returns: string
+      }
+      exec_read_sql: { Args: { p_sql: string }; Returns: Json }
       get_canais_breakdown: {
         Args: {
           p_date_from?: string
