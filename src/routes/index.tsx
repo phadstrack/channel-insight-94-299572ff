@@ -72,16 +72,17 @@ function Overview() {
     tipoMap[t].vendas += 1;
     tipoMap[t].receita += Number(r.valor_convertido ?? 0);
 
-    const c = r.canal || "Sem Lead";
+    const c = r.canal || "Sem Atribuição";
     canalMap[c] = canalMap[c] || { vendas: 0, receita: 0, tipo: t };
     canalMap[c].vendas += 1;
     canalMap[c].receita += Number(r.valor_convertido ?? 0);
   }
 
-  const pctIdent =
-    totalVendas > 0
-      ? ((tipoMap["Existente"]?.vendas ?? 0) / totalVendas) * 100
-      : 0;
+  const identificadas =
+    (tipoMap["Lead Anterior"]?.vendas ?? 0) +
+    (tipoMap["Lead Posterior"]?.vendas ?? 0) +
+    (tipoMap["UTM Direta"]?.vendas ?? 0);
+  const pctIdent = totalVendas > 0 ? (identificadas / totalVendas) * 100 : 0;
 
   const canalRows = Object.entries(canalMap)
     .map(([canal, v]) => ({
@@ -142,13 +143,11 @@ function Overview() {
         <KpiCard label="Total de Vendas" value={fmtNum(totalVendas)} accent="#8b5cf6" loading={isLoading} />
         <KpiCard label="Ticket Médio" value={fmtBRLFull(ticket)} accent="#a78bfa" loading={isLoading} />
         <KpiCard
-          label="Canal Identificado"
+          label="Atribuição Identificada"
           value={
             <span className="flex items-center gap-2">
               {fmtPct(pctIdent)}
-              <span className={`text-[10px] px-1.5 py-0.5 rounded ${TIPO_BADGE.Existente}`}>
-                Existente
-              </span>
+              <span className="text-[10px] text-muted-foreground">{fmtNum(identificadas)}/{fmtNum(totalVendas)}</span>
             </span>
           }
           accent="#4ade80"

@@ -1453,6 +1453,20 @@ export type Database = {
         }
         Returns: string
       }
+      get_canais_breakdown: {
+        Args: {
+          p_date_from?: string
+          p_date_to?: string
+          p_estados?: string[]
+          p_turmas?: string[]
+        }
+        Returns: {
+          canal: string
+          receita: number
+          ticket: number
+          vendas: number
+        }[]
+      }
       get_vendas_agg: {
         Args: {
           p_canais?: string[]
