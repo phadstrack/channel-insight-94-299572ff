@@ -15,6 +15,7 @@ import { Route as TurmasRouteImport } from './routes/turmas'
 import { Route as ProprietariosRouteImport } from './routes/proprietarios'
 import { Route as PacotesRouteImport } from './routes/pacotes'
 import { Route as OrigemRouteImport } from './routes/origem'
+import { Route as ModeloRouteImport } from './routes/modelo'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as GeografiaRouteImport } from './routes/geografia'
 import { Route as ContaRouteImport } from './routes/conta'
@@ -51,6 +52,11 @@ const PacotesRoute = PacotesRouteImport.update({
 const OrigemRoute = OrigemRouteImport.update({
   id: '/origem',
   path: '/origem',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ModeloRoute = ModeloRouteImport.update({
+  id: '/modelo',
+  path: '/modelo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/conta': typeof ContaRoute
   '/geografia': typeof GeografiaRoute
   '/login': typeof LoginRoute
+  '/modelo': typeof ModeloRoute
   '/origem': typeof OrigemRoute
   '/pacotes': typeof PacotesRoute
   '/proprietarios': typeof ProprietariosRoute
@@ -111,6 +118,7 @@ export interface FileRoutesByTo {
   '/conta': typeof ContaRoute
   '/geografia': typeof GeografiaRoute
   '/login': typeof LoginRoute
+  '/modelo': typeof ModeloRoute
   '/origem': typeof OrigemRoute
   '/pacotes': typeof PacotesRoute
   '/proprietarios': typeof ProprietariosRoute
@@ -127,6 +135,7 @@ export interface FileRoutesById {
   '/conta': typeof ContaRoute
   '/geografia': typeof GeografiaRoute
   '/login': typeof LoginRoute
+  '/modelo': typeof ModeloRoute
   '/origem': typeof OrigemRoute
   '/pacotes': typeof PacotesRoute
   '/proprietarios': typeof ProprietariosRoute
@@ -144,6 +153,7 @@ export interface FileRouteTypes {
     | '/conta'
     | '/geografia'
     | '/login'
+    | '/modelo'
     | '/origem'
     | '/pacotes'
     | '/proprietarios'
@@ -159,6 +169,7 @@ export interface FileRouteTypes {
     | '/conta'
     | '/geografia'
     | '/login'
+    | '/modelo'
     | '/origem'
     | '/pacotes'
     | '/proprietarios'
@@ -174,6 +185,7 @@ export interface FileRouteTypes {
     | '/conta'
     | '/geografia'
     | '/login'
+    | '/modelo'
     | '/origem'
     | '/pacotes'
     | '/proprietarios'
@@ -190,6 +202,7 @@ export interface RootRouteChildren {
   ContaRoute: typeof ContaRoute
   GeografiaRoute: typeof GeografiaRoute
   LoginRoute: typeof LoginRoute
+  ModeloRoute: typeof ModeloRoute
   OrigemRoute: typeof OrigemRoute
   PacotesRoute: typeof PacotesRoute
   ProprietariosRoute: typeof ProprietariosRoute
@@ -241,6 +254,13 @@ declare module '@tanstack/react-router' {
       path: '/origem'
       fullPath: '/origem'
       preLoaderRoute: typeof OrigemRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/modelo': {
+      id: '/modelo'
+      path: '/modelo'
+      fullPath: '/modelo'
+      preLoaderRoute: typeof ModeloRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -302,6 +322,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContaRoute: ContaRoute,
   GeografiaRoute: GeografiaRoute,
   LoginRoute: LoginRoute,
+  ModeloRoute: ModeloRoute,
   OrigemRoute: OrigemRoute,
   PacotesRoute: PacotesRoute,
   ProprietariosRoute: ProprietariosRoute,
