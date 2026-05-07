@@ -92,7 +92,7 @@ export function GlobalFilters() {
   const { filters, setFilters, reset } = useFilters();
   const [turmas, setTurmas] = useState<string[]>([]);
   const [estados, setEstados] = useState<string[]>([]);
-  const canais = ["Meta/Instagram", "Google", "Organico", "Lead Trafego", "X (Twitter)", "Sem UTM", "Sem Lead"];
+  const canais = [...CANAIS_LIST];
 
   useEffect(() => {
     (async () => {
