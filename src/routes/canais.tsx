@@ -31,10 +31,10 @@ function Canais() {
     queryKey: ["canais-breakdown", filters],
     queryFn: async () => {
       const { data, error } = await supabase.rpc("get_canais_breakdown", {
-        p_date_from: filters.dateFrom ?? null,
-        p_date_to: filters.dateTo ?? null,
-        p_turmas: filters.turmas.length ? filters.turmas : null,
-        p_estados: filters.estados.length ? filters.estados : null,
+        p_date_from: filters.dateFrom ?? undefined,
+        p_date_to: filters.dateTo ?? undefined,
+        p_turmas: filters.turmas.length ? filters.turmas : undefined,
+        p_estados: filters.estados.length ? filters.estados : undefined,
       });
       if (error) throw error;
       return (data ?? []) as { canal: string; vendas: number; receita: number; ticket: number }[];
