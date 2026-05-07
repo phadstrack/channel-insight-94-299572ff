@@ -1,88 +1,126 @@
-# Auditoria 360 — Achados e plano de correção
+# Reestruturação da Atribuição
 
-Análise feita assumindo as 5 lentes pedidas (CMO, Eng. dados, Cientista, Analista, Dashboard builder). Vou do bug que você reportou e expando para os problemas estruturais que esse bug expõe.
+## Princípios (definidos pelo usuário)
 
----
-
-## 1. Por que "Todos" em /canais não mostra o valor total
-
-**Causa raiz (analista + dashboard builder):** o card "Receita" mostra a soma do canal selecionado. Quando você clica **Todos**, o filtro `canal` deixa de ser aplicado e a query devolve as 3.977 vendas — mas o componente continua usando `channelColor("Todos")`, que cai no fallback cinza, e o KPI **% do Total** vira sempre 100%, dando a impressão visual de que "não tem nada novo". Além disso:
-
-- O label do KPI é genérico ("Receita") e não diferencia "receita do canal" de "receita total".
-- Não existe nenhum KPI/linha mostrando a comparação canal vs. total no mesmo card.
-- A query `.limit(10000)` é silenciosa: se o universo crescer, "Todos" passa a truncar sem aviso.
-- O segundo `useQuery` (`canais-total`) que serviria de denominador **não é exibido** em nenhum lugar quando `canal = Todos`.
-
-Hoje a base tem **R$ 20.677.299,72** em 3.977 vendas — esse número precisa aparecer como "Receita Total" sempre que "Todos" estiver ativo.
-
-## 2. Outros problemas estruturais encontrados
-
-### Engenheiro de dados / Cientista
-- `vendas_atribuidas` recalcula `derive_canal()` em cada SELECT (view sem materialização). Em filtros pesados isso degrada perceptivelmente.
-- `tipo_atribuicao` ainda usa `v.utm_source` cru, em vez do COALESCE com lead — vendas com UTM só no lead caem em "Sem Atribuição" indevidamente.
-- `rebuild_core` não popula `dim_pessoa.email/telefone/nome` quando a chave é só `nk` ou `pk` (perde rastreabilidade humana).
-- Não há índices em `fct_venda(data_matricula, canal)`, `fct_lead(email_key, phone_key)` — consultas filtradas escaneiam tudo.
-
-### CMO / Analista
-- `GlobalFilters.tsx` ainda lista canais legados hard-coded (`Meta/Instagram`, `Lead Trafego`, `Sem UTM`, `Sem Lead`). Filtro de Canal **nunca casa** com a taxonomia atual (Mídia/CRM/YouTube/Redes/Orgânicos/Outros/Sem Atribuição).
-- `index.tsx` ainda usa `tipoMap["Existente"]` e label "Existente" (taxonomia antiga), então KPI "Canal Identificado" mostra **0%** sempre.
-- `index.tsx` agrupa fallback em `"Sem Lead"` (legado) em vez de `"Sem Atribuição"`.
-- `format.ts` mantém badges legados (`Existente`, `Inferida`, `Sem Atribuicao`) misturados com a nova taxonomia — confunde manutenção.
-
-### Dashboard builder
-- `/canais` no estado "Todos": sem KPI comparativo, sem chart de share por canal, sem ranking de canais.
-- Tendência mensal usa cor do canal selecionado mesmo em "Todos" (vira cinza).
-- Sem indicador de período coberto (min/max de `data_matricula`) — usuário não sabe se filtro de data está cortando.
-- `.limit(10000)` em todas as páginas sem feedback "exibindo X de Y".
+1. **Canal = última origem** (`ultima_origem_lead`) como fonte principal.
+2. **Origem original** (`origem_lead`) como fallback quando última origem está vazia.
+3. **UTMs nunca decidem o canal** — entram como evidência de apoio. `utm_source` é exibida sempre nas tabelas e detalhes.
+4. Vendas que não classificarem por nenhuma das origens caem em **Outros**.
+5. Nova tela de **SQL Explorer** para o usuário cruzar leads/vendas livremente (estilo Power BI / consulta).
 
 ---
 
-## 3. Plano de correção (executado em modo build após aprovação)
+## 1. Nova função `derive_canal_v2()` no banco
 
-### A. /canais — corrigir o "Todos" + enriquecer
-1. Quando `canal === "Todos"`:
-   - KPIs viram **Receita Total / Vendas Totais / Ticket Médio Geral / # de canais ativos**.
-   - Adicionar **gráfico de barras horizontais** (share de receita por canal) e **tabela ranking** com vendas, receita, ticket, %.
-   - Linha mensal colorida por canal (multi-line) em vez de única cinza.
-2. Quando canal específico: manter layout atual + nova linha "vs. total" no card de Receita (`R$ X · Y% do total`).
-3. Substituir `.limit(10000)` por agregação server-side via nova RPC `get_canais_breakdown(filtros)` (retorna por canal + total) — performance e correção em uma só.
+Assinatura: `derive_canal_v2(p_ultima_origem, p_origem, p_utm_source, p_utm_medium)`.
 
-### B. Filtros globais — alinhar com taxonomia atual
-4. `GlobalFilters.tsx`: trocar lista hard-coded por `CANAIS_LIST` de `format.ts`.
-5. Carregar `turmas`/`estados` via RPC distinta agregada (não via `.limit(3000)` que pode perder valores).
-
-### C. Visão Geral (/) — remover legado
-6. Trocar `tipoMap["Existente"]` por soma de `Lead Anterior + Lead Posterior + UTM Direta` para o KPI "Canal Identificado".
-7. Trocar fallback `"Sem Lead"` por `"Sem Atribuição"`.
-8. Remover badges/labels `Existente`/`Inferida` de `format.ts` e da UI.
-
-### D. Camada de dados (migration)
-9. Atualizar `vendas_atribuidas`: `tipo_atribuicao` deve usar `COALESCE(v.utm_source, l.utm_source)` para classificar "UTM Direta".
-10. Criar índices: `fct_venda(data_matricula)`, `fct_venda(canal_venda)`, `fct_lead(email_key)`, `fct_lead(phone_key)`, `bridge_lead_venda(venda_id) WHERE is_primary`.
-11. Criar RPC `get_canais_breakdown(p_date_from, p_date_to, p_turmas, p_estados)` retornando `(canal, vendas, receita, ticket)` + linha total — usada por /canais e Overview.
-12. (Opcional, recomendado) materializar `vendas_atribuidas` como `MATERIALIZED VIEW` com refresh disparado ao final de `rebuild_core()`.
-
-### E. Higiene
-13. Remover constantes/labels legadas (`Meta/Instagram`, `Lead Trafego`, `Sem UTM`, `Existente`, `Inferida`) do código.
-14. Adicionar nota no rodapé da tabela "exibindo N de M" quando query for limitada.
-
----
-
-## 4. Detalhes técnicos (para referência)
+Lógica em ordem:
 
 ```text
-Bug "Todos":
-  canal=="Todos" → query sem .eq → retorna 3977 linhas (ok)
-  KPIs usam channelColor(canal) → fallback cinza
-  pct = receita/totalReceita → 100% sempre (denominador = numerador)
-  Faltam KPIs apropriados ao contexto "agregado"
+fonte = COALESCE(NULLIF(ultima_origem,''), origem)   -- decisor único
+se fonte vazia → "Sem Atribuição"
+
+classificar fonte (regex sobre o texto da origem, NÃO da UTM):
+  YouTube     ← youtube, [yt], yt, iex app (canal próprio de vídeo)
+  CRM         ← email, e-mail, mailchimp, rdstation, whats, wpp, sz chat,
+                disparo marketing, hotmart (email-driven)
+  Redes       ← social seller, ss, ss mcis, ss pv/cv, indicação,
+                aluno cis, ex-aluno, stand cis, ativação comercial,
+                avalon - social seller
+  Mídia       ← [fb], [go], [cm], [lp], [vsl], [pgven], [ck],
+                form - meta lead ads, meta lead ads, tráfego,
+                lead tráfego, ads, typeform (LP de captação paga),
+                lp - black, lp - masterclass, ia mcis, meteorico,
+                mulheres experience
+  Orgânicos   ← [org], orgânico, organic, seo, site
+  Operacional ← pedido, cortesia, bonux, transferido, checkout bônus,
+                cliente base, base dksoft, lista de espera (segregado
+                de marketing — não é canal de aquisição)
+  Outros      ← qualquer outra fonte preenchida
 ```
 
-Arquivos a tocar:
-- `src/routes/canais.tsx` (refator de KPIs + ranking + multi-line)
-- `src/routes/index.tsx` (tipo_atribuicao, fallback, KPI identificado)
-- `src/components/dashboard/GlobalFilters.tsx` (canais)
-- `src/lib/format.ts` (limpeza de badges legadas)
-- nova migration: `vendas_atribuidas` (UTM direta via coalesce), índices, RPC `get_canais_breakdown`, opcional MV.
+UTM **não influencia** a classificação — é só metadado exibido.
 
-Após aprovação eu aplico tudo numa rodada (uma migration + edits de UI), valido com `SELECT` no Supabase comparando totais, e te entrego com print mental de cada KPI conferido.
+---
+
+## 2. View `vendas_atribuidas` reconstruída
+
+Colunas adicionadas/redefinidas:
+
+- `canal` ← `derive_canal_v2(ultima_origem_lead, origem_lead, utm_source, utm_medium)`
+- `fonte_atribuicao` ← string indicando qual campo decidiu: `"ultima_origem"`, `"origem"`, `"sem_origem"`
+- `origem_principal` ← `COALESCE(NULLIF(ultima_origem_lead,''), origem_lead)` (texto bruto exibido)
+- `origem_secundaria` ← a outra (origem original quando última foi usada)
+- `utm_source`, `utm_medium`, `utm_campaign`, `utm_content` ← sempre vindos de `fct_venda` (sale-side); UTM do lead vai em colunas separadas `lead_utm_source` etc. para auditoria
+- `tipo_atribuicao` continua, mas refletindo o novo critério
+
+---
+
+## 3. Atualizar frontend
+
+### `src/lib/canal.ts`
+Reescrever `deriveCanal()` para espelhar `derive_canal_v2`: aceita `{ ultima_origem_lead, origem_lead }` como sinais primários e ignora UTM para decisão.
+
+### Novo canal "Operacional"
+Adicionar em `CANAIS_LIST` (`src/lib/format.ts`) com cor própria. Atualizar `GlobalFilters` automaticamente (já lê de `CANAIS_LIST`).
+
+### `src/routes/canais.tsx`
+- Tabela "Detalhamento por canal" ganha colunas: **Origem principal (top 3)** e **UTM source (top 3)** por canal — mostra a evidência sem deixá-la decidir.
+- Top campanhas passa a agregar por **`origem_principal`** em vez de `utm_campanha` (com `utm_campanha` como segunda tabela).
+
+### `src/routes/origem.tsx`
+- Mostrar **duas tabelas lado a lado**: "Última origem" (principal) e "Origem original" (secundária).
+- Cada linha mostra também a `utm_source` mais comum daquela origem.
+
+### `src/routes/vendas.tsx`
+Adicionar coluna `Origem principal` + `utm_source` visível por padrão. (Verificar arquivo antes; se já existir tabela, só adicionar colunas.)
+
+### `src/routes/index.tsx`
+KPI "Atribuição Identificada" passa a contar vendas onde `fonte_atribuicao IN ('ultima_origem','origem')`.
+
+---
+
+## 4. Nova tela: SQL Explorer (`/explorer`)
+
+Tela tipo "consulta livre" para o usuário fazer análises ad-hoc (substitui a necessidade da tela de regras editáveis).
+
+**Backend**: server function `runReadQuery` em `src/lib/explorer.functions.ts`:
+- Aceita uma string SQL.
+- Valida que começa com `SELECT` ou `WITH` (regex), bloqueia `;` múltiplos, palavras-chave `INSERT|UPDATE|DELETE|DROP|ALTER|TRUNCATE|GRANT|CREATE`.
+- Executa via cliente Supabase service-role com `LIMIT 5000` forçado.
+- Restringe acesso a um **whitelist de views/tabelas seguras**: `vendas_atribuidas`, `fct_venda`, `fct_lead`, `bridge_lead_venda`, `dim_pessoa`, `rd_vendas`, `rd_leads`, `meta_ads_spend`, `google_ads_spend`. Bloqueia qualquer referência a `auth.*`, `user_roles`, `profiles`.
+- Protegida por `requireSupabaseAuth` + check `has_role(uid,'admin')`.
+
+**Frontend** (`src/routes/explorer.tsx`):
+- Editor de SQL (textarea com mono font; usar `@/components/ui/textarea`).
+- Painel lateral com **lista de tabelas/colunas disponíveis** (lido de uma constante TS espelhando o whitelist + colunas conhecidas).
+- Botão "Executar" → mostra resultado em tabela paginada com export CSV.
+- Snippets prontos: "Vendas por última origem", "Leads sem venda nos últimos 30d", "UTMs por canal", "Gap entre origem e última origem".
+- Histórico das últimas 20 queries no localStorage.
+
+Adicionar item "Explorer" no `Sidebar.tsx`.
+
+---
+
+## Detalhes técnicos
+
+- **Migração SQL**: cria `derive_canal_v2`, recria view `vendas_atribuidas` com novas colunas, mantém `derive_canal` antiga por compatibilidade mas sem uso.
+- **Sem mudança em `fct_venda`/`fct_lead`** — só na view e na função.
+- **`get_canais_breakdown`** continua funcionando (lê do view atualizado), só passa a refletir a nova classificação automaticamente.
+- **Tipos do Supabase** (`src/integrations/supabase/types.ts`) regenerados após a migração.
+
+---
+
+## Entregáveis
+
+```text
+supabase/migrations/<ts>_attribution_v2.sql   (derive_canal_v2 + view + grants RPC explorer)
+src/lib/canal.ts                               (reescrito)
+src/lib/format.ts                              (CANAIS_LIST + cor "Operacional")
+src/lib/explorer.functions.ts                  (runReadQuery server fn)
+src/routes/explorer.tsx                        (nova tela)
+src/routes/canais.tsx                          (colunas de evidência)
+src/routes/origem.tsx                          (dual: última × original)
+src/routes/index.tsx                           (KPI ajustado)
+src/components/dashboard/Sidebar.tsx           (item Explorer)
+```
