@@ -143,13 +143,11 @@ function Overview() {
         <KpiCard label="Total de Vendas" value={fmtNum(totalVendas)} accent="#8b5cf6" loading={isLoading} />
         <KpiCard label="Ticket Médio" value={fmtBRLFull(ticket)} accent="#a78bfa" loading={isLoading} />
         <KpiCard
-          label="Canal Identificado"
+          label="Atribuição Identificada"
           value={
             <span className="flex items-center gap-2">
               {fmtPct(pctIdent)}
-              <span className={`text-[10px] px-1.5 py-0.5 rounded ${TIPO_BADGE.Existente}`}>
-                Existente
-              </span>
+              <span className="text-[10px] text-muted-foreground">{fmtNum(identificadas)}/{fmtNum(totalVendas)}</span>
             </span>
           }
           accent="#4ade80"
