@@ -126,14 +126,30 @@ function Modelo() {
 }
 
 // ===== MODEL VIEW =====
+const CANVAS_W = 1440;
+const CANVAS_H = 760;
+const CARD_W = 200;
+const HEAD_H = 36;
+const ROW_H = 24;
+
 function ModelView() {
   const [selected, setSelected] = useState<string | null>(null);
+  const [positions, setPositions] = useState<Record<string, { x: number; y: number }>>(() => {
+    try {
+      const saved = localStorage.getItem("modelo_positions");
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return Object.fromEntries(TABLES.map((t) => [t.name, { x: t.x, y: t.y }]));
+  });
+  const [zoom, setZoom] = useState(0.8);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [showRels, setShowRels] = useState(true);
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<{ type: "pan" | "table"; name?: string; startX: number; startY: number; origX: number; origY: number } | null>(null);
+
   const sel = TABLES.find((t) => t.name === selected);
 
   const lines = useMemo(() => {
-    const colH = 24;
-    const headH = 36;
-    const w = 200;
     return RELATIONS.map((r, i) => {
       const [aT, aC] = r.from.split(".");
       const [bT, bC] = r.to.split(".");
@@ -141,34 +157,123 @@ function ModelView() {
       const tb = TABLES.find((t) => t.name === bT)!;
       const ai = ta.cols.findIndex((c) => c.name === aC);
       const bi = tb.cols.findIndex((c) => c.name === bC);
-      const ay = ta.y + headH + ai * colH + colH / 2;
-      const by = tb.y + headH + bi * colH + colH / 2;
-      const aRight = ta.x + w < tb.x;
-      const x1 = aRight ? ta.x + w : ta.x;
-      const x2 = aRight ? tb.x : tb.x + w;
+      const pa = positions[aT] ?? { x: ta.x, y: ta.y };
+      const pb = positions[bT] ?? { x: tb.x, y: tb.y };
+      const ay = pa.y + HEAD_H + ai * ROW_H + ROW_H / 2;
+      const by = pb.y + HEAD_H + bi * ROW_H + ROW_H / 2;
+      const aRight = pa.x + CARD_W < pb.x;
+      const x1 = aRight ? pa.x + CARD_W : pa.x;
+      const x2 = aRight ? pb.x : pb.x + CARD_W;
       const cx = (x1 + x2) / 2;
       return { i, d: `M ${x1} ${ay} C ${cx} ${ay} ${cx} ${by} ${x2} ${by}` };
     });
-  }, []);
+  }, [positions]);
+
+  function savePositions(p: Record<string, { x: number; y: number }>) {
+    setPositions(p);
+    try { localStorage.setItem("modelo_positions", JSON.stringify(p)); } catch {}
+  }
+
+  function onWheel(e: React.WheelEvent) {
+    if (!e.ctrlKey && !e.metaKey && Math.abs(e.deltaY) < 30) return;
+    e.preventDefault();
+    const delta = -e.deltaY * 0.0015;
+    setZoom((z) => Math.min(2, Math.max(0.25, z + delta)));
+  }
+
+  function onMouseDown(e: React.MouseEvent, tableName?: string) {
+    const orig = tableName ? positions[tableName] : pan;
+    dragRef.current = {
+      type: tableName ? "table" : "pan",
+      name: tableName,
+      startX: e.clientX,
+      startY: e.clientY,
+      origX: orig.x,
+      origY: orig.y,
+    };
+    if (tableName) { setSelected(tableName); e.stopPropagation(); }
+  }
+
+  useEffect(() => {
+    function move(e: MouseEvent) {
+      const d = dragRef.current; if (!d) return;
+      const dx = (e.clientX - d.startX) / (d.type === "table" ? zoom : 1);
+      const dy = (e.clientY - d.startY) / (d.type === "table" ? zoom : 1);
+      if (d.type === "pan") setPan({ x: d.origX + dx, y: d.origY + dy });
+      else if (d.name) setPositions((p) => ({ ...p, [d.name!]: { x: d.origX + dx, y: d.origY + dy } }));
+    }
+    function up() {
+      const d = dragRef.current;
+      if (d?.type === "table") {
+        setPositions((p) => { try { localStorage.setItem("modelo_positions", JSON.stringify(p)); } catch {}; return p; });
+      }
+      dragRef.current = null;
+    }
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", up);
+    return () => { window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up); };
+  }, [zoom]);
+
+  function fit() {
+    const vp = viewportRef.current; if (!vp) return;
+    const rect = vp.getBoundingClientRect();
+    const z = Math.min(rect.width / CANVAS_W, rect.height / CANVAS_H, 1);
+    setZoom(z);
+    setPan({ x: (rect.width - CANVAS_W * z) / 2, y: (rect.height - CANVAS_H * z) / 2 });
+  }
+  function reset() {
+    savePositions(Object.fromEntries(TABLES.map((t) => [t.name, { x: t.x, y: t.y }])));
+    setZoom(0.8); setPan({ x: 40, y: 20 });
+  }
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-4">
-      <Card title="Esquema · arraste para explorar">
-        <div className="relative overflow-auto rounded-lg bg-[#0c1017] border border-border" style={{ height: 720 }}>
-          <div className="relative" style={{ width: 1440, height: 760 }}>
-            <svg className="absolute inset-0 pointer-events-none" width={1440} height={760}>
-              {lines.map((l) => (
-                <path key={l.i} d={l.d} stroke="#475569" strokeWidth={1.5} fill="none" markerEnd="url(#arrow)" />
+      <Card title="Esquema · scroll p/ zoom · arraste o fundo p/ mover · arraste tabelas p/ reorganizar">
+        <div className="relative">
+          <div
+            ref={viewportRef}
+            onWheel={onWheel}
+            onMouseDown={(e) => onMouseDown(e)}
+            className="relative overflow-hidden rounded-lg bg-[#0c1017] border border-border cursor-grab active:cursor-grabbing select-none"
+            style={{ height: 720 }}
+          >
+            <div
+              className="absolute top-0 left-0 origin-top-left"
+              style={{ width: CANVAS_W, height: CANVAS_H, transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }}
+            >
+              {showRels && (
+                <svg className="absolute inset-0 pointer-events-none" width={CANVAS_W} height={CANVAS_H}>
+                  {lines.map((l) => (
+                    <path key={l.i} d={l.d} stroke="#475569" strokeWidth={1.5} fill="none" markerEnd="url(#arrow)" />
+                  ))}
+                  <defs>
+                    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                      <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569" />
+                    </marker>
+                  </defs>
+                </svg>
+              )}
+              {TABLES.map((t) => (
+                <TableCard
+                  key={t.name}
+                  t={t}
+                  pos={positions[t.name] ?? { x: t.x, y: t.y }}
+                  active={selected === t.name}
+                  onMouseDown={(e) => onMouseDown(e, t.name)}
+                />
               ))}
-              <defs>
-                <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569" />
-                </marker>
-              </defs>
-            </svg>
-            {TABLES.map((t) => (
-              <TableCard key={t.name} t={t} active={selected === t.name} onClick={() => setSelected(t.name)} />
-            ))}
+            </div>
+          </div>
+          {/* Toolbar */}
+          <div className="absolute bottom-3 right-3 flex items-center gap-1 bg-card/95 backdrop-blur border border-border rounded-md p-1 shadow-lg">
+            <Button size="sm" variant="ghost" onClick={() => setZoom((z) => Math.max(0.25, z - 0.1))} title="Zoom out"><ZoomOut className="size-4" /></Button>
+            <span className="text-xs font-mono px-2 min-w-[3rem] text-center">{Math.round(zoom * 100)}%</span>
+            <Button size="sm" variant="ghost" onClick={() => setZoom((z) => Math.min(2, z + 0.1))} title="Zoom in"><ZoomIn className="size-4" /></Button>
+            <div className="w-px h-5 bg-border mx-1" />
+            <Button size="sm" variant="ghost" onClick={fit} title="Ajustar à tela"><Maximize2 className="size-4" /></Button>
+            <Button size="sm" variant="ghost" onClick={reset} title="Resetar layout"><Move className="size-4" /></Button>
+            <div className="w-px h-5 bg-border mx-1" />
+            <Button size="sm" variant={showRels ? "default" : "ghost"} onClick={() => setShowRels((v) => !v)} title="Relações" className="text-xs h-7">Relações</Button>
           </div>
         </div>
       </Card>
@@ -181,6 +286,11 @@ function ModelView() {
             <li><span className="inline-block size-2.5 rounded-sm mr-2" style={{ background: "#a855f7" }} />view calculada</li>
             <li><span className="inline-block size-2.5 rounded-sm mr-2" style={{ background: "#64748b" }} />raw / origem</li>
           </ul>
+          <div className="text-[11px] text-muted-foreground mt-3 pt-3 border-t border-border space-y-1">
+            <div>• <b>Scroll</b> + Ctrl/⌘ para zoom</div>
+            <div>• Arraste o <b>fundo</b> para mover</div>
+            <div>• Arraste <b>tabelas</b> para reorganizar</div>
+          </div>
         </Card>
         {sel ? <TableInspector table={sel} /> : (
           <Card title="Inspetor"><div className="text-xs text-muted-foreground">Clique em uma tabela para ver amostra de dados e contagem.</div></Card>
@@ -192,13 +302,13 @@ function ModelView() {
 
 const KIND_COLOR: Record<string, string> = { fact: "#6366f1", dim: "#10b981", bridge: "#f59e0b", view: "#a855f7", raw: "#64748b" };
 
-function TableCard({ t, active, onClick }: { t: Tbl; active: boolean; onClick: () => void }) {
+function TableCard({ t, pos, active, onMouseDown }: { t: Tbl; pos: { x: number; y: number }; active: boolean; onMouseDown: (e: React.MouseEvent) => void }) {
   const color = KIND_COLOR[t.kind ?? "raw"];
   return (
-    <button
-      onClick={onClick}
-      className={`absolute rounded-md border bg-[#161b27] text-left shadow-md transition ${active ? "ring-2 ring-primary border-primary/50" : "border-border hover:border-primary/40"}`}
-      style={{ left: t.x, top: t.y, width: 200 }}
+    <div
+      onMouseDown={onMouseDown}
+      className={`absolute rounded-md border bg-[#161b27] text-left shadow-md transition cursor-move ${active ? "ring-2 ring-primary border-primary/50" : "border-border hover:border-primary/40"}`}
+      style={{ left: pos.x, top: pos.y, width: CARD_W }}
     >
       <div className="px-3 py-2 text-xs font-semibold border-b border-border flex items-center gap-2" style={{ color }}>
         <span className="size-2 rounded-sm" style={{ background: color }} />
@@ -212,7 +322,7 @@ function TableCard({ t, active, onClick }: { t: Tbl; active: boolean; onClick: (
           </li>
         ))}
       </ul>
-    </button>
+    </div>
   );
 }
 
