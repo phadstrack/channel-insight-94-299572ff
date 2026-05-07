@@ -107,7 +107,7 @@ function AuthGate() {
   return (
     <div className="min-h-screen">
       <Sidebar />
-      <main className="ml-60 px-8 py-6">
+      <main className="px-8 py-6 transition-[margin] duration-200" style={{ marginLeft: "var(--app-sidebar-w, 15rem)" }}>
         <Outlet />
       </main>
     </div>
