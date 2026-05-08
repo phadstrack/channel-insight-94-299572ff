@@ -22,6 +22,7 @@ import { Route as ContaRouteImport } from './routes/conta'
 import { Route as CanaisRouteImport } from './routes/canais'
 import { Route as AuditoriaRouteImport } from './routes/auditoria'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppWorkspacesRouteImport } from './routes/app.workspaces'
 import { Route as AdminImportRouteImport } from './routes/admin.import'
 
 const VendasRoute = VendasRouteImport.update({
@@ -89,6 +90,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppWorkspacesRoute = AppWorkspacesRouteImport.update({
+  id: '/app/workspaces',
+  path: '/app/workspaces',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminImportRoute = AdminImportRouteImport.update({
   id: '/admin/import',
   path: '/admin/import',
@@ -110,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/utms': typeof UtmsRoute
   '/vendas': typeof VendasRoute
   '/admin/import': typeof AdminImportRoute
+  '/app/workspaces': typeof AppWorkspacesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -126,6 +133,7 @@ export interface FileRoutesByTo {
   '/utms': typeof UtmsRoute
   '/vendas': typeof VendasRoute
   '/admin/import': typeof AdminImportRoute
+  '/app/workspaces': typeof AppWorkspacesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -143,6 +151,7 @@ export interface FileRoutesById {
   '/utms': typeof UtmsRoute
   '/vendas': typeof VendasRoute
   '/admin/import': typeof AdminImportRoute
+  '/app/workspaces': typeof AppWorkspacesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -161,6 +170,7 @@ export interface FileRouteTypes {
     | '/utms'
     | '/vendas'
     | '/admin/import'
+    | '/app/workspaces'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/utms'
     | '/vendas'
     | '/admin/import'
+    | '/app/workspaces'
   id:
     | '__root__'
     | '/'
@@ -193,6 +204,7 @@ export interface FileRouteTypes {
     | '/utms'
     | '/vendas'
     | '/admin/import'
+    | '/app/workspaces'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -210,6 +222,7 @@ export interface RootRouteChildren {
   UtmsRoute: typeof UtmsRoute
   VendasRoute: typeof VendasRoute
   AdminImportRoute: typeof AdminImportRoute
+  AppWorkspacesRoute: typeof AppWorkspacesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -305,6 +318,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/workspaces': {
+      id: '/app/workspaces'
+      path: '/app/workspaces'
+      fullPath: '/app/workspaces'
+      preLoaderRoute: typeof AppWorkspacesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/import': {
       id: '/admin/import'
       path: '/admin/import'
@@ -330,6 +350,7 @@ const rootRouteChildren: RootRouteChildren = {
   UtmsRoute: UtmsRoute,
   VendasRoute: VendasRoute,
   AdminImportRoute: AdminImportRoute,
+  AppWorkspacesRoute: AppWorkspacesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
