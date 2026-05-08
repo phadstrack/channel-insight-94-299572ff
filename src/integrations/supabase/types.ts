@@ -94,6 +94,35 @@ export type Database = {
           },
         ]
       }
+      data_models: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_models_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dim_pessoa: {
         Row: {
           cidade: string | null
@@ -206,6 +235,99 @@ export type Database = {
             columns: ["finding_id"]
             isOneToOne: false
             referencedRelation: "dq_findings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ds_columns: {
+        Row: {
+          id: string
+          name: string
+          ordinal: number
+          source_id: string
+          type: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          ordinal?: number
+          source_id: string
+          type?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          ordinal?: number
+          source_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ds_columns_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "ds_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ds_rows: {
+        Row: {
+          data: Json
+          id: number
+          source_id: string
+        }
+        Insert: {
+          data: Json
+          id?: number
+          source_id: string
+        }
+        Update: {
+          data?: Json
+          id?: number
+          source_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ds_rows_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "ds_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ds_sources: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          row_count: number
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          row_count?: number
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          row_count?: number
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ds_sources_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
         ]
@@ -756,6 +878,45 @@ export type Database = {
         }
         Relationships: []
       }
+      model_nodes: {
+        Row: {
+          id: string
+          model_id: string
+          source_id: string
+          x: number
+          y: number
+        }
+        Insert: {
+          id?: string
+          model_id: string
+          source_id: string
+          x?: number
+          y?: number
+        }
+        Update: {
+          id?: string
+          model_id?: string
+          source_id?: string
+          x?: number
+          y?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "model_nodes_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "data_models"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "model_nodes_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "ds_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orcamentos: {
         Row: {
           created_at: string
@@ -1285,6 +1446,93 @@ export type Database = {
           },
         ]
       }
+      relationship_columns: {
+        Row: {
+          from_col: string
+          id: string
+          ord: number
+          relationship_id: string
+          to_col: string
+        }
+        Insert: {
+          from_col: string
+          id?: string
+          ord?: number
+          relationship_id: string
+          to_col: string
+        }
+        Update: {
+          from_col?: string
+          id?: string
+          ord?: number
+          relationship_id?: string
+          to_col?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relationship_columns_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "relationships"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      relationships: {
+        Row: {
+          active: boolean
+          cardinality: Database["public"]["Enums"]["rel_cardinality"]
+          created_at: string
+          direction: Database["public"]["Enums"]["rel_direction"]
+          from_source: string
+          id: string
+          model_id: string
+          to_source: string
+        }
+        Insert: {
+          active?: boolean
+          cardinality?: Database["public"]["Enums"]["rel_cardinality"]
+          created_at?: string
+          direction?: Database["public"]["Enums"]["rel_direction"]
+          from_source: string
+          id?: string
+          model_id: string
+          to_source: string
+        }
+        Update: {
+          active?: boolean
+          cardinality?: Database["public"]["Enums"]["rel_cardinality"]
+          created_at?: string
+          direction?: Database["public"]["Enums"]["rel_direction"]
+          from_source?: string
+          id?: string
+          model_id?: string
+          to_source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relationships_from_source_fkey"
+            columns: ["from_source"]
+            isOneToOne: false
+            referencedRelation: "ds_sources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relationships_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "data_models"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relationships_to_source_fkey"
+            columns: ["to_source"]
+            isOneToOne: false
+            referencedRelation: "ds_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sem_atribuicao: {
         Row: {
           categoria_origem: string | null
@@ -1391,6 +1639,56 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      workspace_members: {
+        Row: {
+          created_at: string
+          role: Database["public"]["Enums"]["workspace_role"]
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          role?: Database["public"]["Enums"]["workspace_role"]
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          role?: Database["public"]["Enums"]["workspace_role"]
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_members_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspaces: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          owner_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          owner_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          owner_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {
@@ -1514,17 +1812,40 @@ export type Database = {
         }
         Returns: boolean
       }
+      import_sheet: {
+        Args: {
+          p_columns: Json
+          p_name: string
+          p_rows: Json
+          p_workspace_id: string
+        }
+        Returns: string
+      }
       is_valid_email: { Args: { p: string }; Returns: boolean }
       is_valid_phone: { Args: { p: string }; Returns: boolean }
+      is_workspace_member: {
+        Args: {
+          _role?: Database["public"]["Enums"]["workspace_role"]
+          _ws: string
+        }
+        Returns: boolean
+      }
       norm_email: { Args: { p: string }; Returns: string }
       norm_nome: { Args: { p: string }; Returns: string }
       norm_phone: { Args: { p: string }; Returns: string }
       query_builder: { Args: { p_query: Json }; Returns: Json }
       query_builder_meta: { Args: never; Returns: Json }
       rebuild_core: { Args: never; Returns: Json }
+      validate_relationship: {
+        Args: { p_from_source: string; p_pairs: Json; p_to_source: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "user"
+      rel_cardinality: "one_one" | "one_many" | "many_one" | "many_many"
+      rel_direction: "single" | "both"
+      workspace_role: "admin" | "editor" | "viewer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1653,6 +1974,9 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      rel_cardinality: ["one_one", "one_many", "many_one", "many_many"],
+      rel_direction: ["single", "both"],
+      workspace_role: ["admin", "editor", "viewer"],
     },
   },
 } as const

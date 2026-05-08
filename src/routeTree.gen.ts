@@ -22,7 +22,10 @@ import { Route as ContaRouteImport } from './routes/conta'
 import { Route as CanaisRouteImport } from './routes/canais'
 import { Route as AuditoriaRouteImport } from './routes/auditoria'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppWorkspacesRouteImport } from './routes/app.workspaces'
 import { Route as AdminImportRouteImport } from './routes/admin.import'
+import { Route as AppWWidSourcesRouteImport } from './routes/app.w.$wid.sources'
+import { Route as AppWWidModelRouteImport } from './routes/app.w.$wid.model'
 
 const VendasRoute = VendasRouteImport.update({
   id: '/vendas',
@@ -89,9 +92,24 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppWorkspacesRoute = AppWorkspacesRouteImport.update({
+  id: '/app/workspaces',
+  path: '/app/workspaces',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminImportRoute = AdminImportRouteImport.update({
   id: '/admin/import',
   path: '/admin/import',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppWWidSourcesRoute = AppWWidSourcesRouteImport.update({
+  id: '/app/w/$wid/sources',
+  path: '/app/w/$wid/sources',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppWWidModelRoute = AppWWidModelRouteImport.update({
+  id: '/app/w/$wid/model',
+  path: '/app/w/$wid/model',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -110,6 +128,9 @@ export interface FileRoutesByFullPath {
   '/utms': typeof UtmsRoute
   '/vendas': typeof VendasRoute
   '/admin/import': typeof AdminImportRoute
+  '/app/workspaces': typeof AppWorkspacesRoute
+  '/app/w/$wid/model': typeof AppWWidModelRoute
+  '/app/w/$wid/sources': typeof AppWWidSourcesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -126,6 +147,9 @@ export interface FileRoutesByTo {
   '/utms': typeof UtmsRoute
   '/vendas': typeof VendasRoute
   '/admin/import': typeof AdminImportRoute
+  '/app/workspaces': typeof AppWorkspacesRoute
+  '/app/w/$wid/model': typeof AppWWidModelRoute
+  '/app/w/$wid/sources': typeof AppWWidSourcesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -143,6 +167,9 @@ export interface FileRoutesById {
   '/utms': typeof UtmsRoute
   '/vendas': typeof VendasRoute
   '/admin/import': typeof AdminImportRoute
+  '/app/workspaces': typeof AppWorkspacesRoute
+  '/app/w/$wid/model': typeof AppWWidModelRoute
+  '/app/w/$wid/sources': typeof AppWWidSourcesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -161,6 +188,9 @@ export interface FileRouteTypes {
     | '/utms'
     | '/vendas'
     | '/admin/import'
+    | '/app/workspaces'
+    | '/app/w/$wid/model'
+    | '/app/w/$wid/sources'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -177,6 +207,9 @@ export interface FileRouteTypes {
     | '/utms'
     | '/vendas'
     | '/admin/import'
+    | '/app/workspaces'
+    | '/app/w/$wid/model'
+    | '/app/w/$wid/sources'
   id:
     | '__root__'
     | '/'
@@ -193,6 +226,9 @@ export interface FileRouteTypes {
     | '/utms'
     | '/vendas'
     | '/admin/import'
+    | '/app/workspaces'
+    | '/app/w/$wid/model'
+    | '/app/w/$wid/sources'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -210,6 +246,9 @@ export interface RootRouteChildren {
   UtmsRoute: typeof UtmsRoute
   VendasRoute: typeof VendasRoute
   AdminImportRoute: typeof AdminImportRoute
+  AppWorkspacesRoute: typeof AppWorkspacesRoute
+  AppWWidModelRoute: typeof AppWWidModelRoute
+  AppWWidSourcesRoute: typeof AppWWidSourcesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -305,11 +344,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/workspaces': {
+      id: '/app/workspaces'
+      path: '/app/workspaces'
+      fullPath: '/app/workspaces'
+      preLoaderRoute: typeof AppWorkspacesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/import': {
       id: '/admin/import'
       path: '/admin/import'
       fullPath: '/admin/import'
       preLoaderRoute: typeof AdminImportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/w/$wid/sources': {
+      id: '/app/w/$wid/sources'
+      path: '/app/w/$wid/sources'
+      fullPath: '/app/w/$wid/sources'
+      preLoaderRoute: typeof AppWWidSourcesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/w/$wid/model': {
+      id: '/app/w/$wid/model'
+      path: '/app/w/$wid/model'
+      fullPath: '/app/w/$wid/model'
+      preLoaderRoute: typeof AppWWidModelRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -330,6 +390,9 @@ const rootRouteChildren: RootRouteChildren = {
   UtmsRoute: UtmsRoute,
   VendasRoute: VendasRoute,
   AdminImportRoute: AdminImportRoute,
+  AppWorkspacesRoute: AppWorkspacesRoute,
+  AppWWidModelRoute: AppWWidModelRoute,
+  AppWWidSourcesRoute: AppWWidSourcesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

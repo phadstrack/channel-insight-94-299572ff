@@ -1,8 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { LayoutDashboard, Radio, GraduationCap, Tag, MapPin, ShoppingCart, Upload, User, Package, UserCircle, Users, ShieldCheck, Database, ChevronLeft, ChevronRight } from "lucide-react";
+import { LayoutDashboard, Radio, GraduationCap, Tag, MapPin, ShoppingCart, Upload, User, Package, UserCircle, Users, ShieldCheck, Database, ChevronLeft, ChevronRight, Network } from "lucide-react";
 
 const links = [
+  { to: "/app/workspaces", label: "BI (beta)", icon: Network },
   { to: "/", label: "Visão Geral", icon: LayoutDashboard },
   { to: "/vendas", label: "Vendas", icon: ShoppingCart },
   { to: "/turmas", label: "Turmas", icon: GraduationCap },
