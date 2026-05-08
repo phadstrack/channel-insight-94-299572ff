@@ -1,118 +1,118 @@
-# Explorador visual de tabelas com junções (sem SQL)
 
-Transformar a aba **Modelo** em um explorador clicável estilo "Power BI light":
-clico numa tabela → vejo todas as linhas; adiciono junções por clique → trago colunas e contagens da outra tabela; filtro por qualquer coluna (incluindo as trazidas da junção); exporto.
+# Plano de execução — Produto BI SaaS (Iteração 1: Canvas de Modelagem)
 
-Sem digitar SQL. Toda a execução é no banco (Postgres) via uma RPC genérica e segura — escala para qualquer volume.
+Você escolheu **construir produto SaaS multi-cliente do zero** com prioridade no **canvas visual de modelagem com chave composta**. Vou seguir a estratégia iterativa da Parte 2 do seu documento, mas começando pelo Módulo 4 (canvas) — porque é o diferencial e o que valida o produto inteiro.
 
-## 1. Como o usuário usa (fluxo)
+**Importante**: o painel Febracis atual (rotas `/`, `/vendas`, `/origem`, `/canais`, etc.) **fica intocado**. Tudo novo vive sob `/app/*` como produto paralelo. Quando o produto novo amadurecer, decidimos se o Febracis migra pra ele ou continua separado.
 
-1. Na aba **Modelo**, clico em **fct_venda** → abre uma grade (drawer/tela cheia) com **todas as colunas** da tabela, paginada, ordenável, com busca por coluna.
-2. No topo da grade há um botão **"+ Conectar tabela"**:
-   - Escolho a tabela alvo (ex.: `fct_lead`).
-   - Escolho a chave de junção (ex.: `email_key = email_key`, ou `phone_key = phone_key`, ou as duas com OR).
-   - Escolho o que trazer:
-     - **Contagens**: nº de leads, nº de leads distintos por dia, etc.
-     - **Colunas agregadas**: `utm_source` do primeiro lead, `utm_source` do último lead, lista única de `utm_source`, idem para `utm_medium`, `utm_campaign`, `utm_content`, `origem_lead`.
-     - **Datas**: primeira `data_lead`, última `data_lead`.
-3. Cada coluna trazida vira uma **coluna nova na grade de Vendas**, com o nome amigável (ex.: `leads.qtd_cadastros`, `leads.utm_source_ultimo`, `leads.utm_source_lista`).
-4. Posso adicionar **mais conexões** na mesma venda (ex.: também ligar `fct_venda → bridge_lead_venda` para trazer `match_method`, ou `fct_venda → dim_pessoa` para trazer cidade/estado normalizados).
-5. Posso **filtrar por qualquer coluna** — inclusive as agregadas: "só vendas com `leads.qtd_cadastros >= 2`", "vendas com `leads.utm_source_lista` contendo `fb`", "vendas sem lead".
-6. Botão **Exportar CSV** com a visão atual.
-7. Botão **Salvar visão** (localStorage): guarda a base, junções, filtros e ordem das colunas com um nome ("Vendas com 2+ cadastros e UTM Meta") — fica acessível na sidebar do explorador.
-
-Tudo funciona para **qualquer tabela base** do whitelist (`fct_venda`, `fct_lead`, `bridge_lead_venda`, `dim_pessoa`, `vendas_atribuidas`, `rd_vendas`, `rd_leads`, `planilha_vendas`, `planilha_leads`). E qualquer tabela pode ser conectada a qualquer outra desde que você indique a chave.
-
-## 2. Como funciona por baixo (sem SQL para o usuário)
-
-A interface monta uma "consulta visual" como um JSON:
+## Escopo desta iteração (1 entrega)
 
 ```text
-{
-  base: "fct_venda",
-  joins: [
-    { table: "fct_lead", on: [["email_key","email_key"], ["phone_key","phone_key"]],
-      bring: [
-        { kind: "count", as: "qtd_cadastros" },
-        { kind: "first", col: "utm_source", order_by: "data_lead asc",  as: "utm_source_primeiro" },
-        { kind: "last",  col: "utm_source", order_by: "data_lead desc", as: "utm_source_ultimo" },
-        { kind: "list_distinct", col: "utm_source",   as: "utm_source_lista" },
-        { kind: "list_distinct", col: "utm_campaign", as: "utm_campaign_lista" },
-        { kind: "min",   col: "data_lead", as: "data_primeiro_lead" },
-        { kind: "max",   col: "data_lead", as: "data_ultimo_lead" }
-      ]
-    }
-  ],
-  filters: [{ col: "leads.qtd_cadastros", op: ">=", val: 2 }],
-  order_by: [{ col: "data_matricula", dir: "desc" }],
-  limit: 200, offset: 0
-}
+┌─ /app/workspaces ──────────────────────────────────────────────┐
+│ Workspace = "tenant" do usuário. Cada um isola seus dados.    │
+│ Ex.: "Febracis", "Cliente X", "Sandbox"                        │
+└────────────────────────────────────────────────────────────────┘
+       │
+       ▼
+┌─ /app/w/:id/sources ───────────────────────────────────────────┐
+│ Importação MÍNIMA: upload XLSX/CSV → SheetJS → Postgres       │
+│ Cada planilha vira linhas em ds_rows (JSONB) + metadata em    │
+│ ds_sources e ds_columns. SEM tabela física por usuário (não   │
+│ escala em multi-tenant).                                       │
+└────────────────────────────────────────────────────────────────┘
+       │
+       ▼
+┌─ /app/w/:id/model ─── ★ FOCO PRINCIPAL ★ ─────────────────────┐
+│ Canvas React Flow:                                             │
+│  • Cada source = card arrastável com lista de colunas         │
+│  • Arrastar coluna→coluna cria relacionamento                 │
+│  • Botão "Chave composta" abre modal multi-coluna             │
+│  • Validação de match: % cobertura + órfãos em cada lado      │
+│  • Cardinalidade detectada (1:1, 1:N, N:N)                    │
+│  • Ativar/desativar, editar, remover                          │
+└────────────────────────────────────────────────────────────────┘
+       │
+       ▼
+┌─ /app/w/:id/explore ───────────────────────────────────────────┐
+│ Reaproveita query_builder atual, adaptado pra ler ds_rows.    │
+│ Permite testar o modelo: "vendas + leads.qtd_cadastros"       │
+└────────────────────────────────────────────────────────────────┘
 ```
 
-O frontend nunca escreve SQL. Esse JSON é enviado a uma RPC `query_builder(p_query jsonb)` que o traduz com segurança em uma única consulta `SELECT base.* + LEFT JOIN LATERAL (SELECT agregações FROM tabela_alvo WHERE join_keys) AS j_N ON true` — usando agregações como `count(*)`, `array_agg(distinct ...)`, `(array_agg(... ORDER BY ...))[1]`.
+NÃO entra nesta iteração: limpeza tipo Power Query (Módulo 3), medidas DAX (5), construtor de painéis (6), tutorial joyride (7), dados de exemplo, link público, exportação PDF. Cada um é uma iteração futura.
 
-**Por que LATERAL e não JOIN normal**: Vendas tem 1 linha mesmo que tenha 5 leads. O LATERAL agrega antes de juntar, então a grade não duplica linhas.
+## 1. Banco (1 migração)
 
-## 3. Backend: 1 migração
-
-Criar duas RPCs `SECURITY DEFINER` no Postgres (admin-only, mesma proteção da `exec_read_sql`):
-
-- **`query_builder_meta()`**: devolve o whitelist de tabelas + colunas + tipos + chaves sugeridas. A UI usa para popular os menus de tabela/coluna/chave.
-- **`query_builder(p_query jsonb)`**: valida o JSON contra o whitelist (impede injeção — toda referência de tabela/coluna passa por `quote_ident` e tem que estar no whitelist), monta o SELECT com LATERAL joins, executa com `LIMIT` máximo de 5.000 e devolve `{ rows, total_count }`.
-
-Operadores de filtro suportados: `=`, `<>`, `>`, `>=`, `<`, `<=`, `IN`, `BETWEEN`, `IS NULL`, `IS NOT NULL`, `ILIKE %x%`, `array contains`. Agregações suportadas: `count`, `count_distinct`, `min`, `max`, `sum`, `avg`, `first` (primeiro por ordem), `last` (último), `list_distinct` (array_agg distinct, vira `"a, b, c"`).
-
-Whitelist inicial de tabelas/colunas é o conjunto que você já vê na aba Modelo. Adicionar uma tabela nova depois = 1 linha no whitelist da RPC.
-
-## 4. Frontend: nova aba "Explorar" em `/modelo`
-
-Adicionar uma terceira aba ao lado de **Modelo** e **Consulta SQL**:
+Multi-tenant via `workspace_id` em todas as tabelas + RLS.
 
 ```text
-┌─ Explorar ───────────────────────────────────────────────────────┐
-│ Tabela base: [ fct_venda ▾ ]   Visões salvas: [ Padrão ▾ ] [+]   │
-│                                                                  │
-│ Conexões:  [ + Conectar tabela ]                                 │
-│  ┌─────────────────────────────────────────────────────────────┐ │
-│  │ → fct_lead   por email_key OR phone_key             [✏][✕] │ │
-│  │   trazer: qtd_cadastros, utm_source_ultimo, utm_source_..  │ │
-│  └─────────────────────────────────────────────────────────────┘ │
-│                                                                  │
-│ Filtros:  [ + Filtro ]   leads.qtd_cadastros ≥ 2  [✕]            │
-│ Ordenar: data_matricula ↓                                        │
-│                                                                  │
-│ [Executar]  [Exportar CSV]  [Salvar visão]   1.247 linhas        │
-│ ┌─ Grade ─────────────────────────────────────────────────────┐  │
-│ │ data_matricula │ nome │ valor │ leads.qtd │ leads.utm_src…  │  │
-│ │ ...                                                          │  │
-│ └─────────────────────────────────────────────────────────────┘  │
-└──────────────────────────────────────────────────────────────────┘
+workspaces           (id, owner_id, name)
+workspace_members    (workspace_id, user_id, role)   -- futuro
+ds_sources           (id, workspace_id, name, row_count, created_at)
+ds_columns           (id, source_id, name, type, ordinal)
+ds_rows              (id, source_id, data jsonb)     -- 1 linha = 1 registro
+data_models          (id, workspace_id, name)
+model_nodes          (id, model_id, source_id, x, y) -- posição no canvas
+relationships        (id, model_id, from_source, to_source, cardinality, direction, active)
+relationship_columns (relationship_id, from_col, to_col, ord) -- N linhas = chave composta
 ```
 
-E o **clique numa tabela do esquema** (na aba Modelo) abre o Explorador já pré-carregado com aquela tabela como base.
+RLS: `workspace_id IN (SELECT workspace_id FROM workspace_members WHERE user_id = auth.uid())` em tudo. Criação de workspace sempre adiciona o owner como `admin` em `workspace_members`.
 
-Componentes:
-- `ExplorerView.tsx` — orquestra estado (JSON da query + visões salvas em localStorage por nome).
-- `ConnectionEditor.tsx` — modal com 3 passos: tabela alvo → chaves → colunas/agregações a trazer.
-- `FilterRow.tsx` — coluna (com search), operador, valor (input adapta a tipo).
-- `ResultGrid.tsx` — tabela paginada com headers ordenáveis, sticky, busca por coluna.
-- `lib/explorer-runner.ts` — chama a RPC `query_builder` e devolve `{ rows, total }`.
+RPCs:
+- `import_sheet(workspace_id, name, columns jsonb, rows jsonb)` — cria source + columns + insere rows.
+- `validate_relationship(model_id, from_source, to_source, col_pairs jsonb)` — devolve `{matched_left, total_left, matched_right, total_right, cardinality}`. É o coração da "validação de match" do Módulo 4. Funciona pra chave simples e composta (concatena com `||'|'||`).
+- `model_query(model_id, base_source, joins jsonb, ...)` — generaliza o `query_builder` atual pra usar `ds_rows` + relacionamentos do modelo.
 
-## 5. Sobre "qualquer informação de qualquer tela"
+## 2. Frontend
 
-Para cumprir "puxar dados de qualquer tela": as outras telas (Vendas, Origem, Canais, Auditoria, etc.) ganham um botão pequeno **"Abrir no Explorador"** no topo. Ele monta o JSON correspondente àquela visão (mesma tabela base, mesmos filtros vindos do `useFilters`) e abre `/modelo` aba Explorar — você continua dali, conectando o que quiser.
+Pacotes a adicionar: `reactflow`, `xlsx`, `dnd-kit/core`, `zustand`.
 
-## Entregáveis
+Rotas (TanStack):
+- `src/routes/_app/workspaces.tsx` — lista + criar workspace
+- `src/routes/_app/w.$wid.sources.tsx` — importação + listagem
+- `src/routes/_app/w.$wid.model.tsx` — **canvas React Flow** (peça central)
+- `src/routes/_app/w.$wid.explore.tsx` — explorador adaptado
 
-- `supabase/migrations/<ts>_query_builder.sql`
-  - `query_builder_meta()` e `query_builder(jsonb)` com whitelist e validação.
-- `src/routes/modelo.tsx`
-  - Nova aba **Explorar** + clique nas tabelas do esquema abre o Explorador.
-- `src/components/explorer/ExplorerView.tsx`, `ConnectionEditor.tsx`, `FilterRow.tsx`, `ResultGrid.tsx`
-- `src/lib/explorer-runner.ts`
-- Botão "Abrir no Explorador" em `vendas.tsx`, `origem.tsx`, `canais.tsx`.
+Componentes novos:
+- `model/ModelCanvas.tsx` — React Flow + nodes customizados + edges com cardinalidade
+- `model/SourceNode.tsx` — card de tabela arrastável, lista colunas, drag handle por coluna
+- `model/RelationshipModal.tsx` — confirma cardinalidade, direção, mostra match%
+- `model/CompositeKeyEditor.tsx` — UI multi-coluna pra chave composta (3 etapas: lado A, lado B, validar)
+- `model/MatchValidation.tsx` — gauge de cobertura + lista de exemplos órfãos
+- `sources/ImportWizard.tsx` — SheetJS, preview 50 linhas, escolher abas, editar tipos
+- `lib/model-store.ts` — Zustand pra estado do canvas (nodes, edges, selecionado)
 
-## Não-entregáveis (fora do escopo desta rodada)
+## 3. Por que essa ordem (e não a do seu documento)
 
-- Gráficos/agregações visuais (pivot, charts) — Explorador entrega tabela; gráficos podem vir numa próxima.
-- Edição de dados pelo Explorador — só leitura.
+Seu documento sugere: Auth → Sources → Cleaning → Model → Measures → Dashboards → Tutorial.
+
+Mudo pra: **Workspaces → Sources mínimo → Model (canvas) → Explore**, adiando cleaning, measures, dashboards, tutorial.
+
+Razão: o canvas é o que prova o produto. Se o canvas+chave composta+validação de match funciona bem, o resto vira preenchimento. Se não funciona, nenhum dashboard salva. E hoje, sem o canvas, você já tem como explorar dados pelo Explorador atual — então cleaning/measures não bloqueiam.
+
+## 4. Iterações seguintes (não nesta entrega)
+
+- **It. 2**: Cleaning UI empilhável (Módulo 3) — operações como `cleaning_steps` aplicados sobre `ds_rows` em uma view materializada por source.
+- **It. 3**: Medidas (Módulo 5) — começar com SUM/COUNT/DISTINCTCOUNT/IF/LOOKUP. CALCULATE fica pra depois.
+- **It. 4**: Dashboards (Módulo 6) — `react-grid-layout`, KPI + Tabela + Barras, cross-filter via Zustand.
+- **It. 5**: Restante dos visuais + slicers + filtros hierárquicos.
+- **It. 6**: Onboarding + react-joyride + dados de exemplo + Centro de Ajuda.
+- **It. 7**: Polimento, link público, export PDF, multi-página, multi-membro de workspace.
+
+## 5. Riscos e mitigações
+
+- **`ds_rows` JSONB pode ficar lento** com milhões de linhas. Mitigação: índice GIN em `data`, paginação obrigatória no Explore. Se virar gargalo, criamos materialização por source na It. 2.
+- **React Flow + muitas tabelas/colunas** trava. Mitigação: virtualizar lista de colunas dentro do node se >50; collapse por padrão.
+- **Validação de match pode ser cara** em sources grandes. Mitigação: limitar a 100k linhas por lado na validação inicial; mostrar amostra de órfãos, não lista completa.
+- **Coexistência com painel Febracis**: zero impacto. Tabelas novas têm prefixo (`ds_*`, `model_*`), rotas sob `/app/*`, sidebar do Febracis ganha só um link "Produto BI (beta)".
+
+## Entregáveis desta iteração
+
+- 1 migração SQL: tabelas + RLS + RPCs (`import_sheet`, `validate_relationship`, `model_query`)
+- 4 rotas novas sob `/_app/`
+- ~10 componentes novos
+- Sidebar com link "BI (beta)" levando a `/app/workspaces`
+- README curto explicando o que é o produto novo vs painel Febracis
+
+Estimativa: 2-3 dias de implementação intensa só pra esta iteração. Aprovando, eu começo pela migração e pelo canvas (que é o que você quer ver primeiro).
