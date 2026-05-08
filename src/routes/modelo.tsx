@@ -341,7 +341,7 @@ function ColIcon({ type }: { type: Col["type"] }) {
   return <Type className={cls} />;
 }
 
-function TableInspector({ table }: { table: Tbl }) {
+function TableInspector({ table, onOpenExplorer }: { table: Tbl; onOpenExplorer?: (n: string) => void }) {
   const [rows, setRows] = useState<any[] | null>(null);
   const [count, setCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
