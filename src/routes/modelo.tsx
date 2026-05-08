@@ -5,9 +5,10 @@ import { PageHeader, Card } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { Play, Download, Database, Key, Hash, Type, Calendar, FileText, ZoomIn, ZoomOut, Maximize2, Move } from "lucide-react";
+import { Play, Download, Database, Key, Hash, Type, Calendar, FileText, ZoomIn, ZoomOut, Maximize2, Move, Wand2 } from "lucide-react";
 import { useRef } from "react";
 import { fmtNum } from "@/lib/format";
+import ExplorerView from "@/components/explorer/ExplorerView";
 
 export const Route = createFileRoute("/modelo")({
   head: () => ({ meta: [{ title: "Modelo de Dados · Febracis MKT" }] }),
