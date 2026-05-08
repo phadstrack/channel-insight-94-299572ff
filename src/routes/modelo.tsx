@@ -360,8 +360,15 @@ function TableInspector({ table, onOpenExplorer }: { table: Tbl; onOpenExplorer?
   }, [table.name]);
   return (
     <Card title={`Inspetor · ${table.name}`}>
-      <div className="text-xs text-muted-foreground mb-2">
-        {loading ? "Carregando…" : count !== null ? `${fmtNum(count)} linhas` : "—"}
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-xs text-muted-foreground">
+          {loading ? "Carregando…" : count !== null ? `${fmtNum(count)} linhas` : "—"}
+        </div>
+        {onOpenExplorer && (
+          <Button size="sm" variant="default" className="h-7 text-xs" onClick={() => onOpenExplorer(table.name)}>
+            <Wand2 className="size-3.5 mr-1" />Abrir no Explorador
+          </Button>
+        )}
       </div>
       <div className="text-xs font-mono max-h-72 overflow-auto bg-[#0c1017] rounded p-2 border border-border">
         {rows && rows.length > 0
