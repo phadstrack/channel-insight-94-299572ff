@@ -139,7 +139,7 @@ const CARD_W = 200;
 const HEAD_H = 36;
 const ROW_H = 24;
 
-function ModelView() {
+function ModelView({ onOpenExplorer }: { onOpenExplorer?: (name: string) => void }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [positions, setPositions] = useState<Record<string, { x: number; y: number }>>(() => {
     try {
