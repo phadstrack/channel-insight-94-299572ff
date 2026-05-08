@@ -5,9 +5,10 @@ import { PageHeader, Card } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { Play, Download, Database, Key, Hash, Type, Calendar, FileText, ZoomIn, ZoomOut, Maximize2, Move } from "lucide-react";
+import { Play, Download, Database, Key, Hash, Type, Calendar, FileText, ZoomIn, ZoomOut, Maximize2, Move, Wand2 } from "lucide-react";
 import { useRef } from "react";
 import { fmtNum } from "@/lib/format";
+import ExplorerView from "@/components/explorer/ExplorerView";
 
 export const Route = createFileRoute("/modelo")({
   head: () => ({ meta: [{ title: "Modelo de Dados · Febracis MKT" }] }),
@@ -110,15 +111,21 @@ LIMIT 50` },
 ];
 
 function Modelo() {
+  const [tab, setTab] = useState<string>("modelo");
+  const [explorerBase, setExplorerBase] = useState<string | undefined>(undefined);
   return (
     <>
       <PageHeader title="Modelo de Dados" subtitle="Visualize relacionamentos entre tabelas e execute consultas SQL ad-hoc" />
-      <Tabs defaultValue="modelo" className="w-full">
+      <Tabs value={tab} onValueChange={setTab} className="w-full">
         <TabsList className="mb-4">
           <TabsTrigger value="modelo"><Database className="size-4 mr-2" />Modelo</TabsTrigger>
+          <TabsTrigger value="explorar"><Wand2 className="size-4 mr-2" />Explorar</TabsTrigger>
           <TabsTrigger value="consulta"><Play className="size-4 mr-2" />Consulta SQL</TabsTrigger>
         </TabsList>
-        <TabsContent value="modelo"><ModelView /></TabsContent>
+        <TabsContent value="modelo">
+          <ModelView onOpenExplorer={(name) => { setExplorerBase(name); setTab("explorar"); }} />
+        </TabsContent>
+        <TabsContent value="explorar"><ExplorerView initialBase={explorerBase} /></TabsContent>
         <TabsContent value="consulta"><SqlExplorer /></TabsContent>
       </Tabs>
     </>
@@ -132,7 +139,7 @@ const CARD_W = 200;
 const HEAD_H = 36;
 const ROW_H = 24;
 
-function ModelView() {
+function ModelView({ onOpenExplorer }: { onOpenExplorer?: (name: string) => void }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [positions, setPositions] = useState<Record<string, { x: number; y: number }>>(() => {
     try {
@@ -292,7 +299,7 @@ function ModelView() {
             <div>• Arraste <b>tabelas</b> para reorganizar</div>
           </div>
         </Card>
-        {sel ? <TableInspector table={sel} /> : (
+        {sel ? <TableInspector table={sel} onOpenExplorer={onOpenExplorer} /> : (
           <Card title="Inspetor"><div className="text-xs text-muted-foreground">Clique em uma tabela para ver amostra de dados e contagem.</div></Card>
         )}
       </div>
@@ -334,7 +341,7 @@ function ColIcon({ type }: { type: Col["type"] }) {
   return <Type className={cls} />;
 }
 
-function TableInspector({ table }: { table: Tbl }) {
+function TableInspector({ table, onOpenExplorer }: { table: Tbl; onOpenExplorer?: (n: string) => void }) {
   const [rows, setRows] = useState<any[] | null>(null);
   const [count, setCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
@@ -353,8 +360,15 @@ function TableInspector({ table }: { table: Tbl }) {
   }, [table.name]);
   return (
     <Card title={`Inspetor · ${table.name}`}>
-      <div className="text-xs text-muted-foreground mb-2">
-        {loading ? "Carregando…" : count !== null ? `${fmtNum(count)} linhas` : "—"}
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-xs text-muted-foreground">
+          {loading ? "Carregando…" : count !== null ? `${fmtNum(count)} linhas` : "—"}
+        </div>
+        {onOpenExplorer && (
+          <Button size="sm" variant="default" className="h-7 text-xs" onClick={() => onOpenExplorer(table.name)}>
+            <Wand2 className="size-3.5 mr-1" />Abrir no Explorador
+          </Button>
+        )}
       </div>
       <div className="text-xs font-mono max-h-72 overflow-auto bg-[#0c1017] rounded p-2 border border-border">
         {rows && rows.length > 0

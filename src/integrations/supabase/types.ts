@@ -1451,6 +1451,18 @@ export type Database = {
       }
     }
     Functions: {
+      _qb_agg_expr: {
+        Args: { p_bring: Json; p_table: string }
+        Returns: string
+      }
+      _qb_assert_col: {
+        Args: { p_col: string; p_table: string }
+        Returns: undefined
+      }
+      _qb_filter_expr: {
+        Args: { p_base: string; p_filter: Json; p_join_aliases: Json }
+        Returns: string
+      }
       derive_canal: {
         Args: {
           p_origem: string
@@ -1507,6 +1519,8 @@ export type Database = {
       norm_email: { Args: { p: string }; Returns: string }
       norm_nome: { Args: { p: string }; Returns: string }
       norm_phone: { Args: { p: string }; Returns: string }
+      query_builder: { Args: { p_query: Json }; Returns: Json }
+      query_builder_meta: { Args: never; Returns: Json }
       rebuild_core: { Args: never; Returns: Json }
     }
     Enums: {
