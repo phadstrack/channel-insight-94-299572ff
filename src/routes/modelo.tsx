@@ -299,7 +299,7 @@ function ModelView({ onOpenExplorer }: { onOpenExplorer?: (name: string) => void
             <div>• Arraste <b>tabelas</b> para reorganizar</div>
           </div>
         </Card>
-        {sel ? <TableInspector table={sel} /> : (
+        {sel ? <TableInspector table={sel} onOpenExplorer={onOpenExplorer} /> : (
           <Card title="Inspetor"><div className="text-xs text-muted-foreground">Clique em uma tabela para ver amostra de dados e contagem.</div></Card>
         )}
       </div>
