@@ -111,15 +111,21 @@ LIMIT 50` },
 ];
 
 function Modelo() {
+  const [tab, setTab] = useState<string>("modelo");
+  const [explorerBase, setExplorerBase] = useState<string | undefined>(undefined);
   return (
     <>
       <PageHeader title="Modelo de Dados" subtitle="Visualize relacionamentos entre tabelas e execute consultas SQL ad-hoc" />
-      <Tabs defaultValue="modelo" className="w-full">
+      <Tabs value={tab} onValueChange={setTab} className="w-full">
         <TabsList className="mb-4">
           <TabsTrigger value="modelo"><Database className="size-4 mr-2" />Modelo</TabsTrigger>
+          <TabsTrigger value="explorar"><Wand2 className="size-4 mr-2" />Explorar</TabsTrigger>
           <TabsTrigger value="consulta"><Play className="size-4 mr-2" />Consulta SQL</TabsTrigger>
         </TabsList>
-        <TabsContent value="modelo"><ModelView /></TabsContent>
+        <TabsContent value="modelo">
+          <ModelView onOpenExplorer={(name) => { setExplorerBase(name); setTab("explorar"); }} />
+        </TabsContent>
+        <TabsContent value="explorar"><ExplorerView initialBase={explorerBase} /></TabsContent>
         <TabsContent value="consulta"><SqlExplorer /></TabsContent>
       </Tabs>
     </>
