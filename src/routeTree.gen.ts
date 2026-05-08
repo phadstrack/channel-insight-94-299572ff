@@ -25,6 +25,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppWorkspacesRouteImport } from './routes/app.workspaces'
 import { Route as AdminImportRouteImport } from './routes/admin.import'
 import { Route as AppWWidSourcesRouteImport } from './routes/app.w.$wid.sources'
+import { Route as AppWWidModelRouteImport } from './routes/app.w.$wid.model'
 
 const VendasRoute = VendasRouteImport.update({
   id: '/vendas',
@@ -106,6 +107,11 @@ const AppWWidSourcesRoute = AppWWidSourcesRouteImport.update({
   path: '/app/w/$wid/sources',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppWWidModelRoute = AppWWidModelRouteImport.update({
+  id: '/app/w/$wid/model',
+  path: '/app/w/$wid/model',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -123,6 +129,7 @@ export interface FileRoutesByFullPath {
   '/vendas': typeof VendasRoute
   '/admin/import': typeof AdminImportRoute
   '/app/workspaces': typeof AppWorkspacesRoute
+  '/app/w/$wid/model': typeof AppWWidModelRoute
   '/app/w/$wid/sources': typeof AppWWidSourcesRoute
 }
 export interface FileRoutesByTo {
@@ -141,6 +148,7 @@ export interface FileRoutesByTo {
   '/vendas': typeof VendasRoute
   '/admin/import': typeof AdminImportRoute
   '/app/workspaces': typeof AppWorkspacesRoute
+  '/app/w/$wid/model': typeof AppWWidModelRoute
   '/app/w/$wid/sources': typeof AppWWidSourcesRoute
 }
 export interface FileRoutesById {
@@ -160,6 +168,7 @@ export interface FileRoutesById {
   '/vendas': typeof VendasRoute
   '/admin/import': typeof AdminImportRoute
   '/app/workspaces': typeof AppWorkspacesRoute
+  '/app/w/$wid/model': typeof AppWWidModelRoute
   '/app/w/$wid/sources': typeof AppWWidSourcesRoute
 }
 export interface FileRouteTypes {
@@ -180,6 +189,7 @@ export interface FileRouteTypes {
     | '/vendas'
     | '/admin/import'
     | '/app/workspaces'
+    | '/app/w/$wid/model'
     | '/app/w/$wid/sources'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -198,6 +208,7 @@ export interface FileRouteTypes {
     | '/vendas'
     | '/admin/import'
     | '/app/workspaces'
+    | '/app/w/$wid/model'
     | '/app/w/$wid/sources'
   id:
     | '__root__'
@@ -216,6 +227,7 @@ export interface FileRouteTypes {
     | '/vendas'
     | '/admin/import'
     | '/app/workspaces'
+    | '/app/w/$wid/model'
     | '/app/w/$wid/sources'
   fileRoutesById: FileRoutesById
 }
@@ -235,6 +247,7 @@ export interface RootRouteChildren {
   VendasRoute: typeof VendasRoute
   AdminImportRoute: typeof AdminImportRoute
   AppWorkspacesRoute: typeof AppWorkspacesRoute
+  AppWWidModelRoute: typeof AppWWidModelRoute
   AppWWidSourcesRoute: typeof AppWWidSourcesRoute
 }
 
@@ -352,6 +365,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppWWidSourcesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/w/$wid/model': {
+      id: '/app/w/$wid/model'
+      path: '/app/w/$wid/model'
+      fullPath: '/app/w/$wid/model'
+      preLoaderRoute: typeof AppWWidModelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -371,8 +391,18 @@ const rootRouteChildren: RootRouteChildren = {
   VendasRoute: VendasRoute,
   AdminImportRoute: AdminImportRoute,
   AppWorkspacesRoute: AppWorkspacesRoute,
+  AppWWidModelRoute: AppWWidModelRoute,
   AppWWidSourcesRoute: AppWWidSourcesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
