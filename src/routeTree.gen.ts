@@ -24,6 +24,7 @@ import { Route as AuditoriaRouteImport } from './routes/auditoria'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppWorkspacesRouteImport } from './routes/app.workspaces'
 import { Route as AdminImportRouteImport } from './routes/admin.import'
+import { Route as AppWWidSourcesRouteImport } from './routes/app.w.$wid.sources'
 
 const VendasRoute = VendasRouteImport.update({
   id: '/vendas',
@@ -100,6 +101,11 @@ const AdminImportRoute = AdminImportRouteImport.update({
   path: '/admin/import',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppWWidSourcesRoute = AppWWidSourcesRouteImport.update({
+  id: '/app/w/$wid/sources',
+  path: '/app/w/$wid/sources',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -117,6 +123,7 @@ export interface FileRoutesByFullPath {
   '/vendas': typeof VendasRoute
   '/admin/import': typeof AdminImportRoute
   '/app/workspaces': typeof AppWorkspacesRoute
+  '/app/w/$wid/sources': typeof AppWWidSourcesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -134,6 +141,7 @@ export interface FileRoutesByTo {
   '/vendas': typeof VendasRoute
   '/admin/import': typeof AdminImportRoute
   '/app/workspaces': typeof AppWorkspacesRoute
+  '/app/w/$wid/sources': typeof AppWWidSourcesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -152,6 +160,7 @@ export interface FileRoutesById {
   '/vendas': typeof VendasRoute
   '/admin/import': typeof AdminImportRoute
   '/app/workspaces': typeof AppWorkspacesRoute
+  '/app/w/$wid/sources': typeof AppWWidSourcesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -171,6 +180,7 @@ export interface FileRouteTypes {
     | '/vendas'
     | '/admin/import'
     | '/app/workspaces'
+    | '/app/w/$wid/sources'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -188,6 +198,7 @@ export interface FileRouteTypes {
     | '/vendas'
     | '/admin/import'
     | '/app/workspaces'
+    | '/app/w/$wid/sources'
   id:
     | '__root__'
     | '/'
@@ -205,6 +216,7 @@ export interface FileRouteTypes {
     | '/vendas'
     | '/admin/import'
     | '/app/workspaces'
+    | '/app/w/$wid/sources'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -223,6 +235,7 @@ export interface RootRouteChildren {
   VendasRoute: typeof VendasRoute
   AdminImportRoute: typeof AdminImportRoute
   AppWorkspacesRoute: typeof AppWorkspacesRoute
+  AppWWidSourcesRoute: typeof AppWWidSourcesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -332,6 +345,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminImportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/w/$wid/sources': {
+      id: '/app/w/$wid/sources'
+      path: '/app/w/$wid/sources'
+      fullPath: '/app/w/$wid/sources'
+      preLoaderRoute: typeof AppWWidSourcesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -351,6 +371,7 @@ const rootRouteChildren: RootRouteChildren = {
   VendasRoute: VendasRoute,
   AdminImportRoute: AdminImportRoute,
   AppWorkspacesRoute: AppWorkspacesRoute,
+  AppWWidSourcesRoute: AppWWidSourcesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
