@@ -106,6 +106,7 @@ function Auditoria() {
             ? `Snapshot em ${new Date(status.as_of).toLocaleString("pt-BR")}`
             : "Sem rebuild registrado"
         }
+        tutorialKey="auditoria"
         actions={
           <Button size="sm" onClick={() => rebuild.mutate()} disabled={rebuild.isPending}>
             <RefreshCw className={`size-3.5 mr-1.5 ${rebuild.isPending ? "animate-spin" : ""}`} />
