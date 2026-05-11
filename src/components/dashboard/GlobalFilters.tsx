@@ -112,7 +112,7 @@ export function GlobalFilters() {
     filters.dateFrom || filters.dateTo || filters.turmas.length || filters.estados.length || filters.canais.length;
 
   return (
-    <div className="flex flex-wrap items-center gap-2 mb-6 p-3 rounded-xl border border-border bg-card/50">
+    <div data-tour="filters" className="flex flex-wrap items-center gap-2 mb-6 p-3 rounded-xl border border-border bg-card/50">
       <div className="flex items-center gap-1.5">
         <Input
           type="date"
