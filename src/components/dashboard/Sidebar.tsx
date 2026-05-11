@@ -1,23 +1,48 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { LayoutDashboard, Radio, GraduationCap, Tag, MapPin, ShoppingCart, Upload, User, Package, UserCircle, Users, ShieldCheck, Database, ChevronLeft, ChevronRight, Network } from "lucide-react";
+import { LayoutDashboard, Radio, GraduationCap, Tag, MapPin, ShoppingCart, Upload, User, Database, ChevronLeft, ChevronRight, Network, ShieldCheck } from "lucide-react";
 
-const links = [
-  { to: "/app/workspaces", label: "BI (beta)", icon: Network },
-  { to: "/", label: "Visão Geral", icon: LayoutDashboard },
-  { to: "/vendas", label: "Vendas", icon: ShoppingCart },
-  { to: "/turmas", label: "Turmas", icon: GraduationCap },
-  { to: "/pacotes", label: "Pacotes", icon: Package },
-  { to: "/proprietarios", label: "Proprietários", icon: UserCircle },
-  { to: "/origem", label: "Origem do Lead", icon: Users },
-  { to: "/canais", label: "Canais", icon: Radio },
-  { to: "/utms", label: "Campanhas", icon: Tag },
-  { to: "/geografia", label: "Geografia", icon: MapPin },
-  { to: "/modelo", label: "Modelo de Dados", icon: Database },
-  { to: "/auditoria", label: "Auditoria", icon: ShieldCheck },
-  { to: "/admin/import", label: "Importar planilha", icon: Upload },
-  { to: "/conta", label: "Minha conta", icon: User },
-] as const;
+type Item = { to: string; label: string; icon: any; badge?: string };
+type Section = { title: string | null; items: Item[] };
+
+const sections: Section[] = [
+  {
+    title: null,
+    items: [
+      { to: "/", label: "Visão Geral", icon: LayoutDashboard },
+    ],
+  },
+  {
+    title: "Resultados",
+    items: [
+      { to: "/vendas", label: "Vendas", icon: ShoppingCart },
+      { to: "/turmas", label: "Turmas", icon: GraduationCap },
+      { to: "/geografia", label: "Geografia", icon: MapPin },
+    ],
+  },
+  {
+    title: "Marketing",
+    items: [
+      { to: "/canais", label: "Canais", icon: Radio },
+      { to: "/utms", label: "Campanhas", icon: Tag },
+    ],
+  },
+  {
+    title: "BI",
+    items: [
+      { to: "/app/workspaces", label: "Workspaces", icon: Network, badge: "beta" },
+      { to: "/modelo", label: "Modelo (legacy)", icon: Database },
+    ],
+  },
+  {
+    title: "Admin",
+    items: [
+      { to: "/auditoria", label: "Auditoria", icon: ShieldCheck },
+      { to: "/admin/import", label: "Importar planilha", icon: Upload },
+      { to: "/conta", label: "Minha conta", icon: User },
+    ],
+  },
+];
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState<boolean>(() => {
@@ -69,20 +94,33 @@ export function Sidebar() {
         </button>
       )}
 
-      <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-1">
-        {links.map(({ to, label, icon: Icon }) => (
-          <Link
-            key={to}
-            to={to}
-            activeOptions={{ exact: to === "/" }}
-            activeProps={{ className: "bg-primary/15 text-foreground border border-primary/30" }}
-            inactiveProps={{ className: "text-muted-foreground hover:bg-accent hover:text-foreground border border-transparent" }}
-            className={`flex items-center ${collapsed ? "justify-center px-0" : "gap-3 px-3"} py-2 rounded-md text-sm font-medium transition-colors`}
-            title={collapsed ? label : undefined}
-          >
-            <Icon className="size-4 shrink-0" />
-            {!collapsed && <span className="truncate">{label}</span>}
-          </Link>
+      <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-3">
+        {sections.map((sec, idx) => (
+          <div key={idx} className="space-y-1">
+            {!collapsed && sec.title && (
+              <div className="px-3 pt-1 pb-1 text-[10px] uppercase tracking-wider text-muted-foreground/70 font-semibold">{sec.title}</div>
+            )}
+            {collapsed && idx > 0 && <div className="mx-2 my-1 h-px bg-border/50" />}
+            {sec.items.map(({ to, label, icon: Icon, badge }) => (
+              <Link
+                key={to}
+                to={to}
+                activeOptions={{ exact: to === "/" }}
+                activeProps={{ className: "bg-primary/15 text-foreground border border-primary/30" }}
+                inactiveProps={{ className: "text-muted-foreground hover:bg-accent hover:text-foreground border border-transparent" }}
+                className={`flex items-center ${collapsed ? "justify-center px-0" : "gap-3 px-3"} py-2 rounded-md text-sm font-medium transition-colors`}
+                title={collapsed ? label : undefined}
+              >
+                <Icon className="size-4 shrink-0" />
+                {!collapsed && (
+                  <span className="truncate flex-1 flex items-center gap-2">
+                    {label}
+                    {badge && <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-primary/20 text-primary font-semibold">{badge}</span>}
+                  </span>
+                )}
+              </Link>
+            ))}
+          </div>
         ))}
       </nav>
 

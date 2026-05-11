@@ -79,59 +79,30 @@ export const importSheet = createServerFn({ method: "POST" })
 
       if (data.aba === "leads") {
         const records = rows.map((r) => {
-          const utm_origem = pick(r, headerMap, "utm_origem");
-          const utm_midia  = pick(r, headerMap, "utm_midia");
+          const utm_source = pick(r, headerMap, "utm_origem");
+          const utm_medium = pick(r, headerMap, "utm_midia");
           const origem_lead = pick(r, headerMap, "origem_lead");
           return {
-            id_lead_rd: pick(r, headerMap, "id_lead_rd"),
             email: pick(r, headerMap, "email"),
             nome: pick(r, headerMap, "nome"),
             telefone: pick(r, headerMap, "telefone"),
-            proprietario: pick(r, headerMap, "proprietario"),
-            status_lead: pick(r, headerMap, "status_lead"),
-            unidade_rd: pick(r, headerMap, "unidade_rd"),
             origem_lead,
-            url_cadastro: pick(r, headerMap, "url_cadastro"),
-            data_criacao: parseTimestamp(pick(r, headerMap, "data_lead_criacao")),
-            utm_origem,
-            utm_midia,
-            utm_campanha: pick(r, headerMap, "utm_campanha"),
-            utm_conteudo: pick(r, headerMap, "utm_conteudo"),
-            utm_termo: pick(r, headerMap, "utm_termo"),
-            cidade: titleCase(pick(r, headerMap, "cidade")),
-            estado: pick(r, headerMap, "estado"),
-            objecoes: pick(r, headerMap, "objecoes"),
-            canal: deriveCanal({
-              utm_source: utm_origem, utm_medium: utm_midia, origem_lead,
-            }),
+            data_lead: parseTimestamp(pick(r, headerMap, "data_lead_criacao")),
+            utm_source,
+            utm_medium,
+            utm_campaign: pick(r, headerMap, "utm_campanha"),
+            utm_content: pick(r, headerMap, "utm_conteudo"),
+            utm_term: pick(r, headerMap, "utm_termo"),
+            canal: deriveCanal({ utm_source, utm_medium, origem_lead }),
             raw: r as any,
             import_batch_id: batchId,
           };
-        }).filter((r) => r.id_lead_rd || r.email);
+        }).filter((r) => r.email || r.telefone);
 
-        // Deduplica por id_lead_rd (mantém última ocorrência) — evita
-        // "ON CONFLICT DO UPDATE cannot affect row a second time"
-        const seenL = new Map<string, any>();
-        const dedupL: any[] = [];
-        for (const r of records) {
-          if (r.id_lead_rd) seenL.set(r.id_lead_rd, r);
-          else dedupL.push(r);
-        }
-        const recordsDedup = [...seenL.values(), ...dedupL];
-
-        for (let i = 0; i < recordsDedup.length; i += CHUNK) {
-          const chunk = recordsDedup.slice(i, i + CHUNK);
-          const withId = chunk.filter((r) => r.id_lead_rd);
-          const noId   = chunk.filter((r) => !r.id_lead_rd);
-          if (withId.length) {
-            const { error } = await context.supabase
-              .from("rd_leads").upsert(withId as any, { onConflict: "id_lead_rd" });
-            if (error) throw error;
-          }
-          if (noId.length) {
-            const { error } = await context.supabase.from("rd_leads").insert(noId as any);
-            if (error) throw error;
-          }
+        for (let i = 0; i < records.length; i += CHUNK) {
+          const chunk = records.slice(i, i + CHUNK);
+          const { error } = await context.supabase.from("planilha_leads").insert(chunk as any);
+          if (error) throw error;
           inseridas += chunk.length;
           await context.supabase.from("planilha_imports")
             .update({ linhas_inseridas: inseridas }).eq("id", batchId);
