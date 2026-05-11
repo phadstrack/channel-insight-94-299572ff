@@ -12,9 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as VendasRouteImport } from './routes/vendas'
 import { Route as UtmsRouteImport } from './routes/utms'
 import { Route as TurmasRouteImport } from './routes/turmas'
-import { Route as ProprietariosRouteImport } from './routes/proprietarios'
-import { Route as PacotesRouteImport } from './routes/pacotes'
-import { Route as OrigemRouteImport } from './routes/origem'
 import { Route as ModeloRouteImport } from './routes/modelo'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as GeografiaRouteImport } from './routes/geografia'
@@ -24,6 +21,7 @@ import { Route as AuditoriaRouteImport } from './routes/auditoria'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppWorkspacesRouteImport } from './routes/app.workspaces'
 import { Route as AdminImportRouteImport } from './routes/admin.import'
+import { Route as AdminCadastrosRouteImport } from './routes/admin.cadastros'
 import { Route as AppWWidSourcesRouteImport } from './routes/app.w.$wid.sources'
 import { Route as AppWWidModelRouteImport } from './routes/app.w.$wid.model'
 
@@ -40,21 +38,6 @@ const UtmsRoute = UtmsRouteImport.update({
 const TurmasRoute = TurmasRouteImport.update({
   id: '/turmas',
   path: '/turmas',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProprietariosRoute = ProprietariosRouteImport.update({
-  id: '/proprietarios',
-  path: '/proprietarios',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PacotesRoute = PacotesRouteImport.update({
-  id: '/pacotes',
-  path: '/pacotes',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OrigemRoute = OrigemRouteImport.update({
-  id: '/origem',
-  path: '/origem',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ModeloRoute = ModeloRouteImport.update({
@@ -102,6 +85,11 @@ const AdminImportRoute = AdminImportRouteImport.update({
   path: '/admin/import',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCadastrosRoute = AdminCadastrosRouteImport.update({
+  id: '/admin/cadastros',
+  path: '/admin/cadastros',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppWWidSourcesRoute = AppWWidSourcesRouteImport.update({
   id: '/app/w/$wid/sources',
   path: '/app/w/$wid/sources',
@@ -121,12 +109,10 @@ export interface FileRoutesByFullPath {
   '/geografia': typeof GeografiaRoute
   '/login': typeof LoginRoute
   '/modelo': typeof ModeloRoute
-  '/origem': typeof OrigemRoute
-  '/pacotes': typeof PacotesRoute
-  '/proprietarios': typeof ProprietariosRoute
   '/turmas': typeof TurmasRoute
   '/utms': typeof UtmsRoute
   '/vendas': typeof VendasRoute
+  '/admin/cadastros': typeof AdminCadastrosRoute
   '/admin/import': typeof AdminImportRoute
   '/app/workspaces': typeof AppWorkspacesRoute
   '/app/w/$wid/model': typeof AppWWidModelRoute
@@ -140,12 +126,10 @@ export interface FileRoutesByTo {
   '/geografia': typeof GeografiaRoute
   '/login': typeof LoginRoute
   '/modelo': typeof ModeloRoute
-  '/origem': typeof OrigemRoute
-  '/pacotes': typeof PacotesRoute
-  '/proprietarios': typeof ProprietariosRoute
   '/turmas': typeof TurmasRoute
   '/utms': typeof UtmsRoute
   '/vendas': typeof VendasRoute
+  '/admin/cadastros': typeof AdminCadastrosRoute
   '/admin/import': typeof AdminImportRoute
   '/app/workspaces': typeof AppWorkspacesRoute
   '/app/w/$wid/model': typeof AppWWidModelRoute
@@ -160,12 +144,10 @@ export interface FileRoutesById {
   '/geografia': typeof GeografiaRoute
   '/login': typeof LoginRoute
   '/modelo': typeof ModeloRoute
-  '/origem': typeof OrigemRoute
-  '/pacotes': typeof PacotesRoute
-  '/proprietarios': typeof ProprietariosRoute
   '/turmas': typeof TurmasRoute
   '/utms': typeof UtmsRoute
   '/vendas': typeof VendasRoute
+  '/admin/cadastros': typeof AdminCadastrosRoute
   '/admin/import': typeof AdminImportRoute
   '/app/workspaces': typeof AppWorkspacesRoute
   '/app/w/$wid/model': typeof AppWWidModelRoute
@@ -181,12 +163,10 @@ export interface FileRouteTypes {
     | '/geografia'
     | '/login'
     | '/modelo'
-    | '/origem'
-    | '/pacotes'
-    | '/proprietarios'
     | '/turmas'
     | '/utms'
     | '/vendas'
+    | '/admin/cadastros'
     | '/admin/import'
     | '/app/workspaces'
     | '/app/w/$wid/model'
@@ -200,12 +180,10 @@ export interface FileRouteTypes {
     | '/geografia'
     | '/login'
     | '/modelo'
-    | '/origem'
-    | '/pacotes'
-    | '/proprietarios'
     | '/turmas'
     | '/utms'
     | '/vendas'
+    | '/admin/cadastros'
     | '/admin/import'
     | '/app/workspaces'
     | '/app/w/$wid/model'
@@ -219,12 +197,10 @@ export interface FileRouteTypes {
     | '/geografia'
     | '/login'
     | '/modelo'
-    | '/origem'
-    | '/pacotes'
-    | '/proprietarios'
     | '/turmas'
     | '/utms'
     | '/vendas'
+    | '/admin/cadastros'
     | '/admin/import'
     | '/app/workspaces'
     | '/app/w/$wid/model'
@@ -239,12 +215,10 @@ export interface RootRouteChildren {
   GeografiaRoute: typeof GeografiaRoute
   LoginRoute: typeof LoginRoute
   ModeloRoute: typeof ModeloRoute
-  OrigemRoute: typeof OrigemRoute
-  PacotesRoute: typeof PacotesRoute
-  ProprietariosRoute: typeof ProprietariosRoute
   TurmasRoute: typeof TurmasRoute
   UtmsRoute: typeof UtmsRoute
   VendasRoute: typeof VendasRoute
+  AdminCadastrosRoute: typeof AdminCadastrosRoute
   AdminImportRoute: typeof AdminImportRoute
   AppWorkspacesRoute: typeof AppWorkspacesRoute
   AppWWidModelRoute: typeof AppWWidModelRoute
@@ -272,27 +246,6 @@ declare module '@tanstack/react-router' {
       path: '/turmas'
       fullPath: '/turmas'
       preLoaderRoute: typeof TurmasRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/proprietarios': {
-      id: '/proprietarios'
-      path: '/proprietarios'
-      fullPath: '/proprietarios'
-      preLoaderRoute: typeof ProprietariosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pacotes': {
-      id: '/pacotes'
-      path: '/pacotes'
-      fullPath: '/pacotes'
-      preLoaderRoute: typeof PacotesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/origem': {
-      id: '/origem'
-      path: '/origem'
-      fullPath: '/origem'
-      preLoaderRoute: typeof OrigemRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/modelo': {
@@ -358,6 +311,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminImportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/cadastros': {
+      id: '/admin/cadastros'
+      path: '/admin/cadastros'
+      fullPath: '/admin/cadastros'
+      preLoaderRoute: typeof AdminCadastrosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app/w/$wid/sources': {
       id: '/app/w/$wid/sources'
       path: '/app/w/$wid/sources'
@@ -383,12 +343,10 @@ const rootRouteChildren: RootRouteChildren = {
   GeografiaRoute: GeografiaRoute,
   LoginRoute: LoginRoute,
   ModeloRoute: ModeloRoute,
-  OrigemRoute: OrigemRoute,
-  PacotesRoute: PacotesRoute,
-  ProprietariosRoute: ProprietariosRoute,
   TurmasRoute: TurmasRoute,
   UtmsRoute: UtmsRoute,
   VendasRoute: VendasRoute,
+  AdminCadastrosRoute: AdminCadastrosRoute,
   AdminImportRoute: AdminImportRoute,
   AppWorkspacesRoute: AppWorkspacesRoute,
   AppWWidModelRoute: AppWWidModelRoute,
@@ -397,3 +355,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
