@@ -127,7 +127,7 @@ function Turmas() {
 
   return (
     <>
-      <PageHeader title="Turmas" subtitle="Comparativo de performance por coorte" />
+      <PageHeader title="Turmas" subtitle="Comparativo de performance por coorte" tutorialKey="turmas" />
       <GlobalFilters />
 
       <Card className="mb-6">

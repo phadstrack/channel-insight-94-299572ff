@@ -112,7 +112,7 @@ function Utms() {
 
   return (
     <>
-      <PageHeader title="UTMs" subtitle="Análise completa por parâmetros de rastreamento" />
+      <PageHeader title="UTMs" subtitle="Análise completa por parâmetros de rastreamento" tutorialKey="utms" />
       <GlobalFilters />
 
       <div className="flex flex-wrap gap-2 mb-6">

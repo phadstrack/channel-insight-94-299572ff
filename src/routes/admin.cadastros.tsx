@@ -146,7 +146,7 @@ function fmtBRL(v: any) {
 function CadastrosPage() {
   return (
     <div className="px-6 py-6 space-y-6">
-      <PageHeader title="Cadastros" subtitle="Produtos, contas, edições, orçamentos e regras de classificação" />
+      <PageHeader title="Cadastros" subtitle="Produtos, contas, edições, orçamentos e regras de classificação" tutorialKey="cadastros" />
       <Tabs defaultValue={ENTITIES[0].table}>
         <TabsList>
           {ENTITIES.map((e) => (

@@ -98,7 +98,7 @@ function Canais() {
 
   return (
     <>
-      <PageHeader title="Canais" subtitle="Performance detalhada por canal de marketing" />
+      <PageHeader title="Canais" subtitle="Performance detalhada por canal de marketing" tutorialKey="canais" />
       <GlobalFilters />
 
       <div className="flex flex-wrap gap-2 mb-6">

@@ -192,7 +192,7 @@ function Vendas() {
 
   return (
     <>
-      <PageHeader title="Vendas" subtitle="Base completa — atribuição last-click por venda" />
+      <PageHeader title="Vendas" subtitle="Base completa — atribuição last-click por venda" tutorialKey="vendas" />
       <GlobalFilters />
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
