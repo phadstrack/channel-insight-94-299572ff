@@ -120,7 +120,7 @@ function Geografia() {
 
   return (
     <>
-      <PageHeader title="Geografia" subtitle="Performance de vendas por estado e cidade" />
+      <PageHeader title="Geografia" subtitle="Performance de vendas por estado e cidade" tutorialKey="geografia" />
       <GlobalFilters />
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">

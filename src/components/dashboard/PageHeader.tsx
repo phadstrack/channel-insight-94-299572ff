@@ -1,13 +1,29 @@
 import { ReactNode } from "react";
+import { useTutorial } from "@/hooks/useTutorial";
+import { HelpButton } from "./HelpButton";
 
-export function PageHeader({ title, subtitle, actions }: { title: string; subtitle?: string; actions?: ReactNode }) {
+export function PageHeader({
+  title,
+  subtitle,
+  actions,
+  tutorialKey,
+}: {
+  title: string;
+  subtitle?: string;
+  actions?: ReactNode;
+  tutorialKey?: string;
+}) {
+  const { start } = useTutorial(tutorialKey);
   return (
-    <div className="flex items-start justify-between gap-4 mb-6">
+    <div className="flex items-start justify-between gap-4 mb-6" data-tour="page-header">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
         {subtitle && <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>}
       </div>
-      {actions && <div className="flex items-center gap-2">{actions}</div>}
+      <div className="flex items-center gap-2">
+        {actions}
+        {tutorialKey && <HelpButton onClick={start} />}
+      </div>
     </div>
   );
 }

@@ -115,7 +115,7 @@ function Modelo() {
   const [explorerBase, setExplorerBase] = useState<string | undefined>(undefined);
   return (
     <>
-      <PageHeader title="Modelo de Dados" subtitle="Visualize relacionamentos entre tabelas e execute consultas SQL ad-hoc" />
+      <PageHeader title="Modelo de Dados" subtitle="Visualize relacionamentos entre tabelas e execute consultas SQL ad-hoc" tutorialKey="modelo" />
       <Tabs value={tab} onValueChange={setTab} className="w-full">
         <TabsList className="mb-4">
           <TabsTrigger value="modelo"><Database className="size-4 mr-2" />Modelo</TabsTrigger>

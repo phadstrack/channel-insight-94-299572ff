@@ -58,6 +58,7 @@ function ImportPage() {
       <PageHeader
         title="Importar planilha"
         subtitle="Sincronize Leads e Vendas a partir de uma URL pública do Google Sheets"
+        tutorialKey="import"
       />
 
       <Card className="mb-6">

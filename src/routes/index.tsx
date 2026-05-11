@@ -135,6 +135,7 @@ function Overview() {
       <PageHeader
         title="Visão Geral"
         subtitle="Atribuição last-click de vendas Febracis"
+        tutorialKey="visao-geral"
       />
       <GlobalFilters />
 

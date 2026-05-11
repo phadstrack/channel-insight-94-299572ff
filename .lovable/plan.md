@@ -1,76 +1,82 @@
-# Revisão de uso e plano de limpeza
+# Tutoriais por página (tour + botão de ajuda)
 
-Análise heurística cruzando: links no Sidebar, imports no código, tabelas referenciadas em queries, e contagem real de linhas no banco.
+## Objetivo
+Onboarding consistente em todas as páginas. No primeiro acesso de cada página, o usuário vê um **tour guiado** com tooltips destacando os elementos principais. Depois disso, um **botão de ajuda (?)** no header da página permite reabrir o tour a qualquer momento.
 
-## 1. Rotas / páginas
+## UX
 
-| Rota | Linhas | Tabela-fonte | Status sugerido |
-|---|---|---|---|
-| `/` (index) | 322 | `vendas_atribuidas` | **Manter** — home |
-| `/vendas` | 438 | `vendas_atribuidas` | **Manter** |
-| `/turmas` | 298 | `vendas_atribuidas` | **Manter** |
-| `/canais` | 262 | `vendas_atribuidas` | **Manter** |
-| `/geografia` | 251 | `vendas_atribuidas` | **Manter** |
-| `/utms` | 200 | `vendas_atribuidas` | **Manter** |
-| `/pacotes` | 92 | `vendas_atribuidas` | **Consolidar** — vira aba dentro de Vendas |
-| `/proprietarios` | 75 | `vendas_atribuidas` | **Consolidar** — idem |
-| `/origem` | 76 | `vendas_atribuidas` | **Consolidar** — idem |
-| `/modelo` | 511 | `rd_vendas`, `rd_leads`, `jornada_normalizada` + ExplorerView | **Legacy** — sobrepõe ao novo BI canvas |
-| `/auditoria` | 247 | `dq_findings`, `bridge_lead_venda` | **Manter** |
-| `/admin/import` | 206 | `planilha_imports` | **Manter** |
-| `/conta` | 79 | profile | **Manter** |
-| `/app/workspaces`, `/app/w/$wid/sources`, `/app/w/$wid/model` | BI beta | **Manter e priorizar** |
+- **Botão de ajuda** no `PageHeader` (canto direito, ícone `HelpCircle`). Sempre visível.
+- **Tour** abre automaticamente na primeira visita; usa overlay escurecido + spotlight no elemento + balão com título, descrição, contador (`2/5`) e botões `Anterior · Próximo · Pular`.
+- **Persistência**: `localStorage` com chave `tour:v1:<pagina>` marcada após concluir/pular. Versão (`v1`) permite invalidar todos os tutoriais quando atualizarmos o conteúdo.
+- Tour é "skippable" a qualquer passo. Ao clicar no `?`, sempre reabre do passo 1.
 
-**Proposta de menu**: agrupar em duas seções no sidebar ("Resultados" e "Análises"), reduzindo de 14 para ~9 itens visíveis. `/pacotes`, `/proprietarios`, `/origem` viram tabs dentro de `/vendas` ou `/turmas` (rotas continuam vivas, só somem do menu).
+## Páginas cobertas (11)
+Visão Geral, Vendas, Turmas, Geografia, Canais, Campanhas (UTMs), BI Workspaces, Modelo (legacy), Auditoria, Importar planilha, Cadastros.
 
-## 2. Componentes / código
+> Cada tutorial terá entre **3 e 6 passos**, focando: o que a página mostra, como filtrar, como ler os números principais, e ações disponíveis.
 
-- `ExplorerView.tsx` (434 linhas) — usado **só** em `/modelo`. Marcar como legacy; remover quando BI Iteração 2 entregar o equivalente.
-- `GlobalFilters.tsx` — usado em todas as views. **Manter**.
-- `RelationshipModal`, `SourceNode` — em uso pelo BI. **Manter**.
-- `lib/filters.tsx` — específico de `vendas_atribuidas`. **Manter** mas planejar versão genérica para BI.
+## Implementação técnica
 
-Nada flagrantemente morto fora isso.
+**Biblioteca**: `driver.js` (leve, sem dependências, suporta spotlight, dark overlay e tooltips customizadas via CSS). Alternativa considerada: `react-joyride` (mais pesada, depende de portal). Vamos com driver.js.
 
-## 3. Tabelas no banco
+**Estrutura de arquivos**:
+```
+src/
+  tutorials/
+    index.ts              -> mapa { rota -> Tutorial }
+    types.ts              -> type Tutorial = { steps: Step[] }
+    pages/
+      visao-geral.ts
+      vendas.ts
+      turmas.ts
+      ...
+  hooks/
+    useTutorial.ts        -> hook que injeta driver, lê localStorage, expõe start()
+  components/
+    dashboard/
+      HelpButton.tsx      -> botão (?) que chama useTutorial().start()
+      PageHeader.tsx      -> recebe prop tutorialKey opcional, renderiza HelpButton
+```
 
-### Em uso ativo (manter)
-`vendas_atribuidas` (view), `rd_vendas` (3977), `jornada_normalizada` (3085), `planilha_imports`, `user_roles`, `profiles`, BI (`workspaces`, `ds_*`, `data_models`, `model_nodes`, `relationships*`).
+**Marcação dos elementos-alvo**: cada elemento do tour ganha um atributo `data-tour="kpi-receita"`, `data-tour="filtro-data"`, etc. Os steps referenciam esse seletor. Mantém JSX limpo (sem IDs).
 
-### Com dado, sem código que leia (revisar)
-| Tabela | Linhas | Decisão |
-|---|---|---|
-| `dim_pessoa` | 15520 | Pipeline interno — **manter** se ainda alimenta `vendas_atribuidas` |
-| `fct_lead` | 12000 | **Investigar** — duplicado com `planilha_leads`/`rd_leads`? |
-| `fct_venda` | 3977 | **Investigar** — duplicado com `rd_vendas` |
-| `planilha_leads` | 12000 | Staging — manter se importação ainda usa |
-| `bridge_lead_venda` | 16 | Lida em `/auditoria` — **manter** |
-| `dq_findings` | 469 | Lida em `/auditoria` — **manter** |
-| `sem_atribuicao` | 642 | Não lida em lugar nenhum — **dropar** |
-| `produtos`, `contas`, `orcamentos`, `edicoes`, `regras_classificacao` | 2-17 | Cadastros sem UI — **dropar** ou criar UI |
+**Hook `useTutorial(tutorialKey)`**:
+- Lê tutorial de `tutorials/index.ts`
+- Verifica `localStorage.getItem('tour:v1:' + key)` — se ausente, dispara auto-start no mount (com pequeno delay para garantir render)
+- Expõe `start()` para o botão `?`
+- `onDestroyed`/`onSkipped`: grava no localStorage
 
-### Vazias + sem código (dropar)
-`planilha_vendas`, `rd_leads`, `meta_ads_spend`, `google_ads_spend`, `excecoes`.
+**Integração**: cada rota chama `useTutorial("visao-geral")` e passa `tutorialKey="visao-geral"` para o `PageHeader`. Sem mudanças nas queries/dados.
 
-## 4. Plano de execução em 3 ondas
+## Conteúdo dos tutoriais (resumo)
 
-**Onda 1 — limpeza segura (sem risco)**
-1. Reorganizar Sidebar em seções, esconder Pacotes/Proprietários/Origem do nível raiz.
-2. Marcar `/modelo` como "Legacy" no menu até BI canvas substituir.
-3. Migration: drop das tabelas vazias-e-órfãs (`planilha_vendas`, `rd_leads`, `meta_ads_spend`, `google_ads_spend`, `excecoes`).
+| Página | Foco do tour |
+|---|---|
+| Visão Geral | KPIs principais, filtros globais, gráfico de evolução |
+| Vendas | Filtros, tabela, busca, tipos de atribuição |
+| Turmas | Comparativo entre turmas, drilldown |
+| Geografia | Mapa/tabela por estado e cidade |
+| Canais | Breakdown por canal, leitura do gráfico |
+| Campanhas (UTMs) | Hierarquia campanha→conteúdo→origem→mídia |
+| BI Workspaces | Criar workspace, importar fonte, modelar relações, builder |
+| Modelo (legacy) | Aviso de legado, queries SQL prontas |
+| Auditoria | Findings de DQ, severidade, botão Reprocessar |
+| Importar planilha | URL da planilha, GID, preview, importar leads/vendas |
+| Cadastros | Abas (produtos/contas/edições/orçamentos/regras), CRUD |
 
-**Onda 2 — limpeza com confirmação**
-4. Confirmar se `fct_venda`/`fct_lead` ainda são populadas por algum job. Se não → drop.
-5. Drop `sem_atribuicao` (642 linhas, sem leitor).
-6. Drop dos cadastros sem UI — **ou** criar tela admin única se for usar.
+## Estilização
+- CSS do driver.js sobrescrito para casar com o design system: tooltip usa `bg-card`, `border-border`, `text-foreground`; botões usam classes do nosso `Button`.
+- Spotlight com radius e glow combinando com `--primary`.
 
-**Onda 3 — refactor de UI**
-7. Transformar `/pacotes`, `/proprietarios`, `/origem` em tabs internas de `/vendas`.
-8. Remover `/modelo` + `ExplorerView` quando BI Iteração 2 entregar Explore equivalente.
+## Fora de escopo
+- Tour multi-página (cada tour vive na sua rota).
+- Persistência por `user_id` no banco (decisão: só localStorage por enquanto).
+- Tradução (tudo em pt-BR).
+- Tutoriais em rotas filhas de BI (`/app/w/:wid/sources`, `/app/w/:wid/model`) — vão herdar do tour de Workspaces, com 1-2 passos extras dentro dessas telas se necessário.
 
-## Antes de executar a Onda 1, preciso de 2 confirmações
-
-- **fct_venda / fct_lead / dim_pessoa**: ainda têm pipeline alimentando? (Se sim, não toco. Se não, entram na Onda 2.)
-- **Cadastros (produtos/contas/orcamentos/edicoes/regras)**: ainda planeja usar, ou estão abandonados?
-
-Posso começar a Onda 1 já — ela não exige essas respostas.
+## Entregáveis
+1. `bun add driver.js`
+2. Hook `useTutorial` + componente `HelpButton` + atualização do `PageHeader`
+3. 11 arquivos de tutorial em `src/tutorials/pages/`
+4. Atributos `data-tour` adicionados nos elementos-alvo de cada página
+5. CSS de override em `src/styles.css` (seção `.driver-popover` etc.)

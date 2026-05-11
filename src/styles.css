@@ -90,3 +90,88 @@
     font-feature-settings: "cv11", "ss01";
   }
 }
+
+/* ============= driver.js (tutorial tour) overrides ============= */
+.driver-popover {
+  background: var(--color-card) !important;
+  color: var(--color-foreground) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.7) !important;
+  font-family: inherit !important;
+  max-width: 360px !important;
+}
+.driver-popover-title {
+  color: var(--color-foreground) !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  margin-bottom: 8px !important;
+}
+.driver-popover-description {
+  color: var(--color-muted-foreground) !important;
+  font-size: 13px !important;
+  line-height: 1.55 !important;
+}
+.driver-popover-description b {
+  color: var(--color-foreground);
+  font-weight: 600;
+}
+.driver-popover-progress-text {
+  color: var(--color-muted-foreground) !important;
+  font-size: 11px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+.driver-popover-footer {
+  margin-top: 14px !important;
+  gap: 6px !important;
+}
+.driver-popover-prev-btn,
+.driver-popover-next-btn,
+.driver-popover-close-btn {
+  background: transparent !important;
+  border: 1px solid var(--color-border) !important;
+  color: var(--color-foreground) !important;
+  padding: 6px 12px !important;
+  border-radius: 8px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  text-shadow: none !important;
+  transition: background 120ms;
+}
+.driver-popover-prev-btn:hover,
+.driver-popover-next-btn:hover {
+  background: var(--color-accent) !important;
+}
+.driver-popover-next-btn {
+  background: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  color: var(--color-primary-foreground) !important;
+}
+.driver-popover-next-btn:hover {
+  filter: brightness(1.1);
+}
+.driver-popover-close-btn {
+  position: absolute !important;
+  top: 8px !important;
+  right: 8px !important;
+  padding: 2px 8px !important;
+  border: none !important;
+  color: var(--color-muted-foreground) !important;
+}
+.driver-popover-arrow-side-bottom.driver-popover-arrow {
+  border-bottom-color: var(--color-card) !important;
+}
+.driver-popover-arrow-side-top.driver-popover-arrow {
+  border-top-color: var(--color-card) !important;
+}
+.driver-popover-arrow-side-left.driver-popover-arrow {
+  border-left-color: var(--color-card) !important;
+}
+.driver-popover-arrow-side-right.driver-popover-arrow {
+  border-right-color: var(--color-card) !important;
+}
+.driver-overlay {
+  fill: rgba(0, 0, 0, 0.65);
+}

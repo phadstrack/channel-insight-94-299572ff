@@ -32,7 +32,7 @@ function WorkspacesPage() {
 
   return (
     <>
-      <PageHeader title="BI · Workspaces" subtitle="Cada workspace é um espaço isolado de dados, modelos e painéis." />
+      <PageHeader title="BI · Workspaces" subtitle="Cada workspace é um espaço isolado de dados, modelos e painéis." tutorialKey="workspaces" />
       <Card title="Criar workspace">
         <div className="flex gap-2">
           <Input placeholder="Ex.: Febracis, Cliente X..." value={name} onChange={(e) => setName(e.target.value)} />
