@@ -38,6 +38,7 @@ const sections: Section[] = [
     title: "Admin",
     items: [
       { to: "/auditoria", label: "Auditoria", icon: ShieldCheck },
+      { to: "/admin/cadastros", label: "Cadastros", icon: Settings },
       { to: "/admin/import", label: "Importar planilha", icon: Upload },
       { to: "/conta", label: "Minha conta", icon: User },
     ],
