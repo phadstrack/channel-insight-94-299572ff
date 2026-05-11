@@ -24,6 +24,7 @@ import { Route as AuditoriaRouteImport } from './routes/auditoria'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppWorkspacesRouteImport } from './routes/app.workspaces'
 import { Route as AdminImportRouteImport } from './routes/admin.import'
+import { Route as AdminCadastrosRouteImport } from './routes/admin.cadastros'
 import { Route as AppWWidSourcesRouteImport } from './routes/app.w.$wid.sources'
 import { Route as AppWWidModelRouteImport } from './routes/app.w.$wid.model'
 
@@ -102,6 +103,11 @@ const AdminImportRoute = AdminImportRouteImport.update({
   path: '/admin/import',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCadastrosRoute = AdminCadastrosRouteImport.update({
+  id: '/admin/cadastros',
+  path: '/admin/cadastros',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppWWidSourcesRoute = AppWWidSourcesRouteImport.update({
   id: '/app/w/$wid/sources',
   path: '/app/w/$wid/sources',
@@ -127,6 +133,7 @@ export interface FileRoutesByFullPath {
   '/turmas': typeof TurmasRoute
   '/utms': typeof UtmsRoute
   '/vendas': typeof VendasRoute
+  '/admin/cadastros': typeof AdminCadastrosRoute
   '/admin/import': typeof AdminImportRoute
   '/app/workspaces': typeof AppWorkspacesRoute
   '/app/w/$wid/model': typeof AppWWidModelRoute
@@ -146,6 +153,7 @@ export interface FileRoutesByTo {
   '/turmas': typeof TurmasRoute
   '/utms': typeof UtmsRoute
   '/vendas': typeof VendasRoute
+  '/admin/cadastros': typeof AdminCadastrosRoute
   '/admin/import': typeof AdminImportRoute
   '/app/workspaces': typeof AppWorkspacesRoute
   '/app/w/$wid/model': typeof AppWWidModelRoute
@@ -166,6 +174,7 @@ export interface FileRoutesById {
   '/turmas': typeof TurmasRoute
   '/utms': typeof UtmsRoute
   '/vendas': typeof VendasRoute
+  '/admin/cadastros': typeof AdminCadastrosRoute
   '/admin/import': typeof AdminImportRoute
   '/app/workspaces': typeof AppWorkspacesRoute
   '/app/w/$wid/model': typeof AppWWidModelRoute
@@ -187,6 +196,7 @@ export interface FileRouteTypes {
     | '/turmas'
     | '/utms'
     | '/vendas'
+    | '/admin/cadastros'
     | '/admin/import'
     | '/app/workspaces'
     | '/app/w/$wid/model'
@@ -206,6 +216,7 @@ export interface FileRouteTypes {
     | '/turmas'
     | '/utms'
     | '/vendas'
+    | '/admin/cadastros'
     | '/admin/import'
     | '/app/workspaces'
     | '/app/w/$wid/model'
@@ -225,6 +236,7 @@ export interface FileRouteTypes {
     | '/turmas'
     | '/utms'
     | '/vendas'
+    | '/admin/cadastros'
     | '/admin/import'
     | '/app/workspaces'
     | '/app/w/$wid/model'
@@ -245,6 +257,7 @@ export interface RootRouteChildren {
   TurmasRoute: typeof TurmasRoute
   UtmsRoute: typeof UtmsRoute
   VendasRoute: typeof VendasRoute
+  AdminCadastrosRoute: typeof AdminCadastrosRoute
   AdminImportRoute: typeof AdminImportRoute
   AppWorkspacesRoute: typeof AppWorkspacesRoute
   AppWWidModelRoute: typeof AppWWidModelRoute
@@ -358,6 +371,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminImportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/cadastros': {
+      id: '/admin/cadastros'
+      path: '/admin/cadastros'
+      fullPath: '/admin/cadastros'
+      preLoaderRoute: typeof AdminCadastrosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app/w/$wid/sources': {
       id: '/app/w/$wid/sources'
       path: '/app/w/$wid/sources'
@@ -389,6 +409,7 @@ const rootRouteChildren: RootRouteChildren = {
   TurmasRoute: TurmasRoute,
   UtmsRoute: UtmsRoute,
   VendasRoute: VendasRoute,
+  AdminCadastrosRoute: AdminCadastrosRoute,
   AdminImportRoute: AdminImportRoute,
   AppWorkspacesRoute: AppWorkspacesRoute,
   AppWWidModelRoute: AppWWidModelRoute,
