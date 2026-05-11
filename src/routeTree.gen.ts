@@ -12,9 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as VendasRouteImport } from './routes/vendas'
 import { Route as UtmsRouteImport } from './routes/utms'
 import { Route as TurmasRouteImport } from './routes/turmas'
-import { Route as ProprietariosRouteImport } from './routes/proprietarios'
-import { Route as PacotesRouteImport } from './routes/pacotes'
-import { Route as OrigemRouteImport } from './routes/origem'
 import { Route as ModeloRouteImport } from './routes/modelo'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as GeografiaRouteImport } from './routes/geografia'
@@ -41,21 +38,6 @@ const UtmsRoute = UtmsRouteImport.update({
 const TurmasRoute = TurmasRouteImport.update({
   id: '/turmas',
   path: '/turmas',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProprietariosRoute = ProprietariosRouteImport.update({
-  id: '/proprietarios',
-  path: '/proprietarios',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PacotesRoute = PacotesRouteImport.update({
-  id: '/pacotes',
-  path: '/pacotes',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OrigemRoute = OrigemRouteImport.update({
-  id: '/origem',
-  path: '/origem',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ModeloRoute = ModeloRouteImport.update({
@@ -127,9 +109,6 @@ export interface FileRoutesByFullPath {
   '/geografia': typeof GeografiaRoute
   '/login': typeof LoginRoute
   '/modelo': typeof ModeloRoute
-  '/origem': typeof OrigemRoute
-  '/pacotes': typeof PacotesRoute
-  '/proprietarios': typeof ProprietariosRoute
   '/turmas': typeof TurmasRoute
   '/utms': typeof UtmsRoute
   '/vendas': typeof VendasRoute
@@ -147,9 +126,6 @@ export interface FileRoutesByTo {
   '/geografia': typeof GeografiaRoute
   '/login': typeof LoginRoute
   '/modelo': typeof ModeloRoute
-  '/origem': typeof OrigemRoute
-  '/pacotes': typeof PacotesRoute
-  '/proprietarios': typeof ProprietariosRoute
   '/turmas': typeof TurmasRoute
   '/utms': typeof UtmsRoute
   '/vendas': typeof VendasRoute
@@ -168,9 +144,6 @@ export interface FileRoutesById {
   '/geografia': typeof GeografiaRoute
   '/login': typeof LoginRoute
   '/modelo': typeof ModeloRoute
-  '/origem': typeof OrigemRoute
-  '/pacotes': typeof PacotesRoute
-  '/proprietarios': typeof ProprietariosRoute
   '/turmas': typeof TurmasRoute
   '/utms': typeof UtmsRoute
   '/vendas': typeof VendasRoute
@@ -190,9 +163,6 @@ export interface FileRouteTypes {
     | '/geografia'
     | '/login'
     | '/modelo'
-    | '/origem'
-    | '/pacotes'
-    | '/proprietarios'
     | '/turmas'
     | '/utms'
     | '/vendas'
@@ -210,9 +180,6 @@ export interface FileRouteTypes {
     | '/geografia'
     | '/login'
     | '/modelo'
-    | '/origem'
-    | '/pacotes'
-    | '/proprietarios'
     | '/turmas'
     | '/utms'
     | '/vendas'
@@ -230,9 +197,6 @@ export interface FileRouteTypes {
     | '/geografia'
     | '/login'
     | '/modelo'
-    | '/origem'
-    | '/pacotes'
-    | '/proprietarios'
     | '/turmas'
     | '/utms'
     | '/vendas'
@@ -251,9 +215,6 @@ export interface RootRouteChildren {
   GeografiaRoute: typeof GeografiaRoute
   LoginRoute: typeof LoginRoute
   ModeloRoute: typeof ModeloRoute
-  OrigemRoute: typeof OrigemRoute
-  PacotesRoute: typeof PacotesRoute
-  ProprietariosRoute: typeof ProprietariosRoute
   TurmasRoute: typeof TurmasRoute
   UtmsRoute: typeof UtmsRoute
   VendasRoute: typeof VendasRoute
@@ -285,27 +246,6 @@ declare module '@tanstack/react-router' {
       path: '/turmas'
       fullPath: '/turmas'
       preLoaderRoute: typeof TurmasRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/proprietarios': {
-      id: '/proprietarios'
-      path: '/proprietarios'
-      fullPath: '/proprietarios'
-      preLoaderRoute: typeof ProprietariosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pacotes': {
-      id: '/pacotes'
-      path: '/pacotes'
-      fullPath: '/pacotes'
-      preLoaderRoute: typeof PacotesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/origem': {
-      id: '/origem'
-      path: '/origem'
-      fullPath: '/origem'
-      preLoaderRoute: typeof OrigemRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/modelo': {
@@ -403,9 +343,6 @@ const rootRouteChildren: RootRouteChildren = {
   GeografiaRoute: GeografiaRoute,
   LoginRoute: LoginRoute,
   ModeloRoute: ModeloRoute,
-  OrigemRoute: OrigemRoute,
-  PacotesRoute: PacotesRoute,
-  ProprietariosRoute: ProprietariosRoute,
   TurmasRoute: TurmasRoute,
   UtmsRoute: UtmsRoute,
   VendasRoute: VendasRoute,
@@ -418,3 +355,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
