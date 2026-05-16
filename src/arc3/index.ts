@@ -10,11 +10,23 @@
 // Export all types
 export * from './types';
 
-// Export core modules (to be implemented)
-// export { AuditSession } from './core/audit/session';
-// export { DataCollector } from './core/data/collector';
-// export { MetricsCalculator } from './core/analysis/metrics';
-// export { TrackingAuditor } from './core/tracking/tracker-auditor';
-// export { FindingsDetector } from './core/findings/detector';
-// export { RecommendationEngine } from './core/recommendations/rules';
-// export { ReportGenerator } from './core/reports/generator';
+// Export core modules
+export { AuditSession } from './core/audit';
+export { DataCollector, DataNormalizer, DataValidator } from './core/data';
+export { MetricsCalculator } from './core/analysis';
+export { TrackingAuditor } from './core/tracking';
+export { FindingsDetector } from './core/findings';
+export { RecommendationEngine } from './core/recommendations';
+export { ReportGenerator } from './core/reports';
+
+// Export skills
+export { SkillOrchestrator } from './skills';
+
+// Export integrations
+export * from './integrations';
+
+// Export db
+export * from './db';
+
+// Export utils
+export * from './utils';
