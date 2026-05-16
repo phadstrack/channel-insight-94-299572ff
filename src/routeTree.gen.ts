@@ -9,15 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as WorkspaceRouteImport } from './routes/workspace'
+import { Route as VendasRouteImport } from './routes/vendas'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as LeadsRouteImport } from './routes/leads'
+import { Route as GeografiaRouteImport } from './routes/geografia'
 import { Route as ContaRouteImport } from './routes/conta'
+import { Route as CanaisRouteImport } from './routes/canais'
+import { Route as AuditoriaRouteImport } from './routes/auditoria'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuditoriaIdRouteImport } from './routes/auditoria.$id'
+import { Route as AdminImportRouteImport } from './routes/admin.import'
+import { Route as AdminCadastrosRouteImport } from './routes/admin.cadastros'
 
-const WorkspaceRoute = WorkspaceRouteImport.update({
-  id: '/workspace',
-  path: '/workspace',
+const VendasRoute = VendasRouteImport.update({
+  id: '/vendas',
+  path: '/vendas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -25,9 +30,29 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LeadsRoute = LeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GeografiaRoute = GeografiaRouteImport.update({
+  id: '/geografia',
+  path: '/geografia',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ContaRoute = ContaRouteImport.update({
   id: '/conta',
   path: '/conta',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CanaisRoute = CanaisRouteImport.update({
+  id: '/canais',
+  path: '/canais',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuditoriaRoute = AuditoriaRouteImport.update({
+  id: '/auditoria',
+  path: '/auditoria',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -35,57 +60,113 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuditoriaIdRoute = AuditoriaIdRouteImport.update({
-  id: '/auditoria/$id',
-  path: '/auditoria/$id',
+const AdminImportRoute = AdminImportRouteImport.update({
+  id: '/admin/import',
+  path: '/admin/import',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCadastrosRoute = AdminCadastrosRouteImport.update({
+  id: '/admin/cadastros',
+  path: '/admin/cadastros',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auditoria': typeof AuditoriaRoute
+  '/canais': typeof CanaisRoute
   '/conta': typeof ContaRoute
+  '/geografia': typeof GeografiaRoute
+  '/leads': typeof LeadsRoute
   '/login': typeof LoginRoute
-  '/workspace': typeof WorkspaceRoute
-  '/auditoria/$id': typeof AuditoriaIdRoute
+  '/vendas': typeof VendasRoute
+  '/admin/cadastros': typeof AdminCadastrosRoute
+  '/admin/import': typeof AdminImportRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auditoria': typeof AuditoriaRoute
+  '/canais': typeof CanaisRoute
   '/conta': typeof ContaRoute
+  '/geografia': typeof GeografiaRoute
+  '/leads': typeof LeadsRoute
   '/login': typeof LoginRoute
-  '/workspace': typeof WorkspaceRoute
-  '/auditoria/$id': typeof AuditoriaIdRoute
+  '/vendas': typeof VendasRoute
+  '/admin/cadastros': typeof AdminCadastrosRoute
+  '/admin/import': typeof AdminImportRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/auditoria': typeof AuditoriaRoute
+  '/canais': typeof CanaisRoute
   '/conta': typeof ContaRoute
+  '/geografia': typeof GeografiaRoute
+  '/leads': typeof LeadsRoute
   '/login': typeof LoginRoute
-  '/workspace': typeof WorkspaceRoute
-  '/auditoria/$id': typeof AuditoriaIdRoute
+  '/vendas': typeof VendasRoute
+  '/admin/cadastros': typeof AdminCadastrosRoute
+  '/admin/import': typeof AdminImportRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/conta' | '/login' | '/workspace' | '/auditoria/$id'
+  fullPaths:
+    | '/'
+    | '/auditoria'
+    | '/canais'
+    | '/conta'
+    | '/geografia'
+    | '/leads'
+    | '/login'
+    | '/vendas'
+    | '/admin/cadastros'
+    | '/admin/import'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/conta' | '/login' | '/workspace' | '/auditoria/$id'
-  id: '__root__' | '/' | '/conta' | '/login' | '/workspace' | '/auditoria/$id'
+  to:
+    | '/'
+    | '/auditoria'
+    | '/canais'
+    | '/conta'
+    | '/geografia'
+    | '/leads'
+    | '/login'
+    | '/vendas'
+    | '/admin/cadastros'
+    | '/admin/import'
+  id:
+    | '__root__'
+    | '/'
+    | '/auditoria'
+    | '/canais'
+    | '/conta'
+    | '/geografia'
+    | '/leads'
+    | '/login'
+    | '/vendas'
+    | '/admin/cadastros'
+    | '/admin/import'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuditoriaRoute: typeof AuditoriaRoute
+  CanaisRoute: typeof CanaisRoute
   ContaRoute: typeof ContaRoute
+  GeografiaRoute: typeof GeografiaRoute
+  LeadsRoute: typeof LeadsRoute
   LoginRoute: typeof LoginRoute
-  WorkspaceRoute: typeof WorkspaceRoute
-  AuditoriaIdRoute: typeof AuditoriaIdRoute
+  VendasRoute: typeof VendasRoute
+  AdminCadastrosRoute: typeof AdminCadastrosRoute
+  AdminImportRoute: typeof AdminImportRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/workspace': {
-      id: '/workspace'
-      path: '/workspace'
-      fullPath: '/workspace'
-      preLoaderRoute: typeof WorkspaceRouteImport
+    '/vendas': {
+      id: '/vendas'
+      path: '/vendas'
+      fullPath: '/vendas'
+      preLoaderRoute: typeof VendasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -95,11 +176,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/leads': {
+      id: '/leads'
+      path: '/leads'
+      fullPath: '/leads'
+      preLoaderRoute: typeof LeadsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/geografia': {
+      id: '/geografia'
+      path: '/geografia'
+      fullPath: '/geografia'
+      preLoaderRoute: typeof GeografiaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/conta': {
       id: '/conta'
       path: '/conta'
       fullPath: '/conta'
       preLoaderRoute: typeof ContaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/canais': {
+      id: '/canais'
+      path: '/canais'
+      fullPath: '/canais'
+      preLoaderRoute: typeof CanaisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auditoria': {
+      id: '/auditoria'
+      path: '/auditoria'
+      fullPath: '/auditoria'
+      preLoaderRoute: typeof AuditoriaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -109,11 +218,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/auditoria/$id': {
-      id: '/auditoria/$id'
-      path: '/auditoria/$id'
-      fullPath: '/auditoria/$id'
-      preLoaderRoute: typeof AuditoriaIdRouteImport
+    '/admin/import': {
+      id: '/admin/import'
+      path: '/admin/import'
+      fullPath: '/admin/import'
+      preLoaderRoute: typeof AdminImportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/cadastros': {
+      id: '/admin/cadastros'
+      path: '/admin/cadastros'
+      fullPath: '/admin/cadastros'
+      preLoaderRoute: typeof AdminCadastrosRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -121,10 +237,15 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuditoriaRoute: AuditoriaRoute,
+  CanaisRoute: CanaisRoute,
   ContaRoute: ContaRoute,
+  GeografiaRoute: GeografiaRoute,
+  LeadsRoute: LeadsRoute,
   LoginRoute: LoginRoute,
-  WorkspaceRoute: WorkspaceRoute,
-  AuditoriaIdRoute: AuditoriaIdRoute,
+  VendasRoute: VendasRoute,
+  AdminCadastrosRoute: AdminCadastrosRoute,
+  AdminImportRoute: AdminImportRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

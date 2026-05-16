@@ -1,4 +1,4 @@
-import { Outlet, Link, createRootRoute, HeadContent, Scripts, useLocation, useNavigate, redirect } from "@tanstack/react-router";
+import { Outlet, Link, createRootRoute, HeadContent, Scripts, useLocation, useNavigate } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/dashboard/Sidebar";
@@ -18,7 +18,7 @@ function NotFoundComponent() {
         <p className="mt-2 text-sm text-muted-foreground">Verifique a URL ou volte ao início.</p>
         <div className="mt-6">
           <Link to="/" className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
-            Ir para o Dashboard
+            Ir para a Visão Geral
           </Link>
         </div>
       </div>
@@ -31,7 +31,7 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "ARC3 · Auditoria de Marketing" },
+      { title: "Pipeline · Vendas & Leads" },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),
@@ -65,7 +65,7 @@ function RootComponent() {
 }
 
 function AuthGate() {
-  const { session, loading, role, clientId } = useAuth();
+  const { session, loading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const isLogin = location.pathname === "/login";
@@ -74,12 +74,7 @@ function AuthGate() {
     if (!loading && !session && !isLogin) {
       navigate({ to: "/login" });
     }
-
-    // Redirecionar clientes para workspace
-    if (!loading && session && role === "client" && location.pathname === "/" && !isLogin) {
-      navigate({ to: "/workspace" });
-    }
-  }, [loading, session, role, isLogin, navigate, location.pathname]);
+  }, [loading, session, isLogin, navigate]);
 
   if (isLogin) return <Outlet />;
   if (loading || !session) return (
