@@ -9,17 +9,10 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as WorkspaceRouteImport } from './routes/workspace'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ContaRouteImport } from './routes/conta'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuditoriaIdRouteImport } from './routes/auditoria.$id'
 
-const WorkspaceRoute = WorkspaceRouteImport.update({
-  id: '/workspace',
-  path: '/workspace',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -35,59 +28,39 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuditoriaIdRoute = AuditoriaIdRouteImport.update({
-  id: '/auditoria/$id',
-  path: '/auditoria/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/conta': typeof ContaRoute
   '/login': typeof LoginRoute
-  '/workspace': typeof WorkspaceRoute
-  '/auditoria/$id': typeof AuditoriaIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/conta': typeof ContaRoute
   '/login': typeof LoginRoute
-  '/workspace': typeof WorkspaceRoute
-  '/auditoria/$id': typeof AuditoriaIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/conta': typeof ContaRoute
   '/login': typeof LoginRoute
-  '/workspace': typeof WorkspaceRoute
-  '/auditoria/$id': typeof AuditoriaIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/conta' | '/login' | '/workspace' | '/auditoria/$id'
+  fullPaths: '/' | '/conta' | '/login'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/conta' | '/login' | '/workspace' | '/auditoria/$id'
-  id: '__root__' | '/' | '/conta' | '/login' | '/workspace' | '/auditoria/$id'
+  to: '/' | '/conta' | '/login'
+  id: '__root__' | '/' | '/conta' | '/login'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ContaRoute: typeof ContaRoute
   LoginRoute: typeof LoginRoute
-  WorkspaceRoute: typeof WorkspaceRoute
-  AuditoriaIdRoute: typeof AuditoriaIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/workspace': {
-      id: '/workspace'
-      path: '/workspace'
-      fullPath: '/workspace'
-      preLoaderRoute: typeof WorkspaceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -109,13 +82,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/auditoria/$id': {
-      id: '/auditoria/$id'
-      path: '/auditoria/$id'
-      fullPath: '/auditoria/$id'
-      preLoaderRoute: typeof AuditoriaIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -123,9 +89,16 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ContaRoute: ContaRoute,
   LoginRoute: LoginRoute,
-  WorkspaceRoute: WorkspaceRoute,
-  AuditoriaIdRoute: AuditoriaIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

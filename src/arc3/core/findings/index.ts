@@ -1,1 +1,0 @@
-export { FindingsDetector } from './detector';
