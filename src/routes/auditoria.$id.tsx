@@ -1,5 +1,9 @@
-import { useParams } from '@tanstack/react-router';
+import { createFileRoute, useParams } from '@tanstack/react-router';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
+export const Route = createFileRoute('/auditoria/$id')({
+  component: AuditoriaDetail,
+});
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, TrendingUp, Target } from 'lucide-react';
 

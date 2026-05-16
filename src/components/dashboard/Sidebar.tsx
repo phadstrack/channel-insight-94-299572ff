@@ -51,9 +51,6 @@ export function Sidebar() {
               <Link to="/" className={navItemClass("/")} title="Dashboard">
                 {!collapsed && "📊 Dashboard"}
               </Link>
-              <Link to="/clientes" className={navItemClass("/clientes")} title="Clientes">
-                {!collapsed && "👥 Clientes"}
-              </Link>
             </div>
 
             {/* Divider */}
