@@ -18,6 +18,7 @@ import { Route as CanaisRouteImport } from './routes/canais'
 import { Route as AuditoriaRouteImport } from './routes/auditoria'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminImportRouteImport } from './routes/admin.import'
+import { Route as AdminCadastrosRouteImport } from './routes/admin.cadastros'
 
 const VendasRoute = VendasRouteImport.update({
   id: '/vendas',
@@ -64,6 +65,11 @@ const AdminImportRoute = AdminImportRouteImport.update({
   path: '/admin/import',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCadastrosRoute = AdminCadastrosRouteImport.update({
+  id: '/admin/cadastros',
+  path: '/admin/cadastros',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -74,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/leads': typeof LeadsRoute
   '/login': typeof LoginRoute
   '/vendas': typeof VendasRoute
+  '/admin/cadastros': typeof AdminCadastrosRoute
   '/admin/import': typeof AdminImportRoute
 }
 export interface FileRoutesByTo {
@@ -85,6 +92,7 @@ export interface FileRoutesByTo {
   '/leads': typeof LeadsRoute
   '/login': typeof LoginRoute
   '/vendas': typeof VendasRoute
+  '/admin/cadastros': typeof AdminCadastrosRoute
   '/admin/import': typeof AdminImportRoute
 }
 export interface FileRoutesById {
@@ -97,6 +105,7 @@ export interface FileRoutesById {
   '/leads': typeof LeadsRoute
   '/login': typeof LoginRoute
   '/vendas': typeof VendasRoute
+  '/admin/cadastros': typeof AdminCadastrosRoute
   '/admin/import': typeof AdminImportRoute
 }
 export interface FileRouteTypes {
@@ -110,6 +119,7 @@ export interface FileRouteTypes {
     | '/leads'
     | '/login'
     | '/vendas'
+    | '/admin/cadastros'
     | '/admin/import'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -121,6 +131,7 @@ export interface FileRouteTypes {
     | '/leads'
     | '/login'
     | '/vendas'
+    | '/admin/cadastros'
     | '/admin/import'
   id:
     | '__root__'
@@ -132,6 +143,7 @@ export interface FileRouteTypes {
     | '/leads'
     | '/login'
     | '/vendas'
+    | '/admin/cadastros'
     | '/admin/import'
   fileRoutesById: FileRoutesById
 }
@@ -144,6 +156,7 @@ export interface RootRouteChildren {
   LeadsRoute: typeof LeadsRoute
   LoginRoute: typeof LoginRoute
   VendasRoute: typeof VendasRoute
+  AdminCadastrosRoute: typeof AdminCadastrosRoute
   AdminImportRoute: typeof AdminImportRoute
 }
 
@@ -212,6 +225,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminImportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/cadastros': {
+      id: '/admin/cadastros'
+      path: '/admin/cadastros'
+      fullPath: '/admin/cadastros'
+      preLoaderRoute: typeof AdminCadastrosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -224,6 +244,7 @@ const rootRouteChildren: RootRouteChildren = {
   LeadsRoute: LeadsRoute,
   LoginRoute: LoginRoute,
   VendasRoute: VendasRoute,
+  AdminCadastrosRoute: AdminCadastrosRoute,
   AdminImportRoute: AdminImportRoute,
 }
 export const routeTree = rootRouteImport
