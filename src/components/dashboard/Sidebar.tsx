@@ -3,16 +3,36 @@ import { Link, useLocation } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
 
+type NavItem = { to: string; label: string; icon: string; adminOnly?: boolean };
+
+const NAV: NavItem[] = [
+  { to: "/", label: "Visão Geral", icon: "📊" },
+  { to: "/vendas", label: "Vendas", icon: "💰" },
+  { to: "/leads", label: "Leads", icon: "🎯" },
+  { to: "/canais", label: "Canais", icon: "📡" },
+  { to: "/geografia", label: "Geografia", icon: "🗺️" },
+];
+
+const ADMIN_NAV: NavItem[] = [
+  { to: "/admin/cadastros", label: "Cadastros", icon: "📚", adminOnly: true },
+  { to: "/admin/import", label: "Importar", icon: "⬆️", adminOnly: true },
+  { to: "/auditoria", label: "Auditoria", icon: "🔍", adminOnly: true },
+];
+
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const { role } = useAuth();
   const location = useLocation();
+  const isAdmin = role === "admin";
 
-  const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + "/");
+  const isActive = (path: string) =>
+    path === "/"
+      ? location.pathname === "/"
+      : location.pathname === path || location.pathname.startsWith(path + "/");
 
-  const navItemClass = (path: string) =>
+  const itemCls = (path: string) =>
     cn(
-      "block px-4 py-2 rounded-md text-sm transition-colors",
+      "flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors",
       isActive(path)
         ? "bg-primary text-primary-foreground font-medium"
         : "text-foreground hover:bg-accent"
@@ -21,17 +41,14 @@ export function Sidebar() {
   return (
     <aside
       className="fixed left-0 top-0 h-screen bg-card border-r border-border transition-all duration-300 overflow-hidden flex flex-col"
-      style={{
-        "--app-sidebar-w": collapsed ? "4rem" : "15rem",
-      } as React.CSSProperties}
+      style={{ "--app-sidebar-w": collapsed ? "4rem" : "15rem" } as React.CSSProperties}
     >
-      {/* Header com logo */}
       <div className="p-4 border-b border-border flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="size-8 rounded-md bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center font-bold text-white text-xs">
             A3
           </div>
-          {!collapsed && <span className="font-semibold text-sm">ARC3</span>}
+          {!collapsed && <span className="font-semibold text-sm">Pipeline</span>}
         </div>
         <button
           onClick={() => setCollapsed(!collapsed)}
@@ -42,39 +59,35 @@ export function Sidebar() {
         </button>
       </div>
 
-      {/* Navegação */}
       <nav className="flex-1 overflow-y-auto p-3 space-y-1">
-        {role === "admin" ? (
-          <>
-            {/* Admin navigation */}
-            <div className="space-y-1">
-              <Link to="/" className={navItemClass("/")} title="Dashboard">
-                {!collapsed && "📊 Dashboard"}
-              </Link>
-            </div>
+        {NAV.map((item) => (
+          <Link key={item.to} to={item.to} className={itemCls(item.to)} title={item.label}>
+            <span>{item.icon}</span>
+            {!collapsed && <span>{item.label}</span>}
+          </Link>
+        ))}
 
-            {/* Divider */}
-            {!collapsed && <div className="border-t border-border my-2"></div>}
-          </>
-        ) : (
+        {isAdmin && (
           <>
-            {/* Client navigation */}
-            <div className="space-y-1">
-              <Link to="/workspace" className={navItemClass("/workspace")} title="Minhas Auditorias">
-                {!collapsed && "📋 Minhas Auditorias"}
+            {!collapsed && (
+              <div className="pt-3 pb-1 px-3 text-[10px] uppercase tracking-wider text-muted-foreground">
+                Admin
+              </div>
+            )}
+            {ADMIN_NAV.map((item) => (
+              <Link key={item.to} to={item.to} className={itemCls(item.to)} title={item.label}>
+                <span>{item.icon}</span>
+                {!collapsed && <span>{item.label}</span>}
               </Link>
-            </div>
-
-            {/* Divider */}
-            {!collapsed && <div className="border-t border-border my-2"></div>}
+            ))}
           </>
         )}
       </nav>
 
-      {/* Footer com conta */}
       <div className="border-t border-border p-3">
-        <Link to="/conta" className={navItemClass("/conta")} title="Minha conta">
-          {!collapsed && "⚙️ Minha conta"}
+        <Link to="/conta" className={itemCls("/conta")} title="Minha conta">
+          <span>⚙️</span>
+          {!collapsed && <span>Minha conta</span>}
         </Link>
       </div>
     </aside>

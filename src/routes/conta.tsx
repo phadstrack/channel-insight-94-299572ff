@@ -1,48 +1,92 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "@tanstack/react-router";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/conta")({
   component: ContaPage,
 });
 
 function ContaPage() {
-  const { user, role, clientId, signOut } = useAuth();
+  const { user, role, signOut } = useAuth();
   const navigate = useNavigate();
+  const qc = useQueryClient();
+  const [nome, setNome] = useState("");
+  const [telefone, setTelefone] = useState("");
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate({ to: "/login" });
-  };
+  const { data: profile } = useQuery({
+    queryKey: ["profile", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  useEffect(() => {
+    if (profile) {
+      setNome(profile.nome ?? "");
+      setTelefone(profile.telefone ?? "");
+    }
+  }, [profile]);
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ nome, telefone })
+        .eq("id", user!.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Perfil atualizado");
+      qc.invalidateQueries({ queryKey: ["profile"] });
+    },
+    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Erro"),
+  });
 
   return (
-    <div className="space-y-6 max-w-lg">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Minha Conta</h1>
-        <p className="text-muted-foreground mt-1">Gerenciar informações da conta</p>
+    <div className="max-w-lg">
+      <PageHeader title="Minha Conta" />
+
+      <div className="rounded-xl border border-border bg-card p-6 space-y-4">
+        <div>
+          <Label className="text-xs">E-mail</Label>
+          <p className="text-sm mt-1">{user?.email}</p>
+        </div>
+        <div>
+          <Label className="text-xs">Perfil</Label>
+          <p className="text-sm mt-1">{role === "admin" ? "Administrador" : "Usuário"}</p>
+        </div>
+        <div>
+          <Label className="text-xs">Nome</Label>
+          <Input value={nome} onChange={(e) => setNome(e.target.value)} className="mt-1" />
+        </div>
+        <div>
+          <Label className="text-xs">Telefone</Label>
+          <Input value={telefone} onChange={(e) => setTelefone(e.target.value)} className="mt-1" />
+        </div>
+        <Button onClick={() => save.mutate()} disabled={save.isPending} className="w-full">
+          {save.isPending ? "Salvando..." : "Salvar"}
+        </Button>
       </div>
 
-      <div className="rounded-lg border border-border bg-card p-6 space-y-4">
-        <div>
-          <label className="text-sm font-medium text-muted-foreground">E-mail</label>
-          <p className="text-lg mt-1">{user?.email}</p>
-        </div>
-
-        <div>
-          <label className="text-sm font-medium text-muted-foreground">Perfil</label>
-          <p className="text-lg mt-1 capitalize">{role === "admin" ? "Auditor" : "Cliente"}</p>
-        </div>
-
-        {role === "client" && clientId && (
-          <div>
-            <label className="text-sm font-medium text-muted-foreground">Workspace ID</label>
-            <p className="text-sm font-mono mt-1 bg-muted p-2 rounded">{clientId}</p>
-          </div>
-        )}
-      </div>
-
-      <Button onClick={handleSignOut} variant="destructive" className="w-full">
+      <Button
+        onClick={async () => { await signOut(); navigate({ to: "/login" }); }}
+        variant="destructive"
+        className="w-full mt-4"
+      >
         Sair
       </Button>
     </div>
