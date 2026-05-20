@@ -26,32 +26,62 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<Role>(null);
 
   useEffect(() => {
+    let mounted = true;
+    let requestId = 0;
+
     const loadRole = async (s: Session | null) => {
+      const currentRequest = ++requestId;
       if (!s?.user) {
-        setRole(null);
-        setLoading(false);
+        if (mounted && currentRequest === requestId) {
+          setRole(null);
+          setLoading(false);
+        }
         return;
       }
-      const { data } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", s.user.id);
-      const roles = (data ?? []).map((r) => r.role as string);
-      setRole(roles.includes("admin") ? "admin" : "user");
-      setLoading(false);
+      try {
+        const roleResult = await Promise.race([
+          supabase.from("user_roles").select("role").eq("user_id", s.user.id),
+          new Promise<null>((resolve) => window.setTimeout(() => resolve(null), 5000)),
+        ]);
+
+        const roles =
+          roleResult && "data" in roleResult
+            ? (roleResult.data ?? []).map((r) => r.role as string)
+            : [];
+
+        if (mounted && currentRequest === requestId) {
+          setRole(roles.includes("admin") ? "admin" : "user");
+        }
+      } catch {
+        if (mounted && currentRequest === requestId) setRole("user");
+      } finally {
+        if (mounted && currentRequest === requestId) setLoading(false);
+      }
     };
 
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
       setSession(s);
-      loadRole(s);
+      window.setTimeout(() => void loadRole(s), 0);
     });
 
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      loadRole(data.session);
-    });
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        if (!mounted) return;
+        setSession(data.session);
+        void loadRole(data.session);
+      })
+      .catch(() => {
+        if (!mounted) return;
+        setSession(null);
+        setRole(null);
+        setLoading(false);
+      });
 
-    return () => sub.subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   return (
